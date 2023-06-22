@@ -1,16 +1,29 @@
 import { HttpService } from '@nestjs/axios';
-import { Injectable, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
 import * as csvToJson from 'csvtojson';
 import { CandidateJSON } from './rcw.interface';
 import { AxiosResponse } from 'axios';
+import * as wkhtmltopdf from 'wkhtmltopdf';
 import * as fs from 'fs';
 import { arrayBuffer } from 'stream/consumers';
+import { Blob } from 'buffer';
+import { MailerService } from '@nestjs-modules/mailer';
+import { MailingService } from 'src/mailing/mailing.service';
+// import { Blob } from 'buffer';
 // import * as base64 from 'base64topdf';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const base64 = require('base64topdf');
 @Injectable()
 export class RcwService {
-  constructor(private readonly httpService: HttpService) {}
+  constructor(
+    private readonly httpService: HttpService,
+    private readonly mailerService: MailerService,
+    private readonly mailingService: MailingService,
+  ) {}
 
   async processCSV(csvPath: string): Promise<CandidateJSON[]> {
     const csvFilePath = csvPath;
@@ -23,20 +36,13 @@ export class RcwService {
       jsonArray as CandidateJSON[],
       idxIdMap,
     );
-    const credentials = await this.generateCredential(
+    const candidatesWithCredentials = await this.generateCredential(
       candidatesWithDIDs,
       idxIdMap,
     );
 
-    const data = await this.getCredentialPDF(
-      credentials[0],
-      process.env.PDF_TEMPLATE_ID,
-    );
-    console.log(data);
-    new Blob([data], { type: 'application/pdf' });
-    // const base64Str = Buffer.from(data).toString('base64');
-    // base64.base64Decode(base64Str, 'test.pdf');
-    return credentials;
+    await this.generatePDFs(candidatesWithCredentials);
+    return candidatesWithCredentials;
 
     // render and send emails
   }
@@ -132,7 +138,7 @@ export class RcwService {
 
     responses.forEach((response: AxiosResponse) => {
       try {
-        console.log('cred did: ', response.data.credential.id);
+        // console.log('cred did: ', response.data.credential.id);
         candidates[
           idxIdMap[response.data.credential.credentialSubject.id]
         ].credentialDID = response.data.credential.id;
@@ -147,7 +153,7 @@ export class RcwService {
     return candidates;
   }
 
-  async getCredentialPDF(credential: any, templateId: string) {
+  async getCredentialPDFData(credential: any, templateId: string) {
     // fetch the template
     const templateResponse: AxiosResponse = await this.httpService.axiosRef.get(
       `${process.env.SCHEMA_BASE_URL}/rendering-template/${templateId}`,
@@ -155,71 +161,72 @@ export class RcwService {
     const template = templateResponse.data.template;
     // console.log('template: ', template);
     try {
-      // const response: AxiosResponse = await this.httpService.axiosRef.post(
-      //   `${process.env.CREDENTIAL_BASE_URL}/credentials/render`,
-      //   {
-      //     credential,
-      //     template,
-      //     //:'<html lang=\'en\'>   <head>     <meta charset=\'UTF-8\' />     <meta http-equiv=\'X-UA-Compatible\' content=\'IE=edge\' />     <meta name=\'viewport\' content=\'width=device-width, initial-scale=1.0\' />     <title>Certificate</title>   </head>   <body>   <div style="width:800px; height:600px; padding:20px; text-align:center; border: 10px solid #787878"> <div style="width:750px; height:550px; padding:20px; text-align:center; border: 5px solid #787878"> <span style="font-size:50px; font-weight:bold">Certificate of Completion</span> <br><br> <span style="font-size:25px"><i>This is to certify that</i></span> <br><br> <span style="font-size:30px"><b>{{name}}</b></span><br/><br/> <span style="font-size:25px"><i>has completed the course</i></span> <br/><br/> <span style="font-size:30px">{{programme}}</span> <br/><br/> <span style="font-size:20px">with score of <b>{{grade}}%</b></span> <br/><br/><br/><br/> <span style="font-size:25px"></span><br> <div> <img src={{qr}} > </div> </div>  </div>  </body></html>',
-      //     output: 'STRING',
-      //   },
-      //   {
-      //     headers: {
-      //       'Content-Type': 'application/json',
-      //       // Accept: 'application/pdf',
-      //     },
-      //   },
-      // );
-
       const response = await this.httpService.axiosRef.post(
         `${process.env.CREDENTIAL_BASE_URL}/credentials/render`,
         {
-          credential: {
-            id: 'did:C4GT:3fd0f24d-c01a-4449-952e-6bfb51d63579',
-            type: [
-              'VerifiableCredential',
-              'ProofOfSubmission',
-              'Acknowledgement',
-              'C4GT23',
-            ],
-            proof: {
-              type: 'Ed25519Signature2020',
-              created: '2023-06-22T10:42:36.927Z',
-              proofValue:
-                'eyJhbGciOiJFZERTQSJ9.IntcInZjXCI6e1wiQGNvbnRleHRcIjpbXCJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MVwiLFwiaHR0cHM6Ly93d3cudzMub3JnLzIwMTgvY3JlZGVudGlhbHMvZXhhbXBsZXMvdjFcIl0sXCJ0eXBlXCI6W1wiVmVyaWZpYWJsZUNyZWRlbnRpYWxcIixcIlByb29mT2ZTdWJtaXNzaW9uXCIsXCJBY2tub3dsZWRnZW1lbnRcIixcIkM0R1QyM1wiXSxcImNyZWRlbnRpYWxTdWJqZWN0XCI6e1wibmFtZVwiOlwieWFzaFwiLFwiZW1haWxcIjpcInlhc2gud2ZjMjAyMkBzYW1hZ3JhZ292ZXJuYW5jZS5pblwifX0sXCJvcHRpb25zXCI6e1wiY3JlYXRlZFwiOlwiMjAyMC0wNC0wMlQxODo0ODozNlpcIixcImNyZWRlbnRpYWxTdGF0dXNcIjp7XCJ0eXBlXCI6XCJSZXZvY2F0aW9uTGlzdDIwMjBTdGF0dXNcIn19LFwic3ViXCI6XCJkaWQ6QzRHVDpmY2IyYWY1NS1jZWVhLTRiYTgtOTIzYS03OTMyMGNjY2E0MjdcIixcImp0aVwiOlwiQzRHVFwiLFwibmJmXCI6MTY4NzQzMDU1NixcImV4cFwiOjQ4MjgyMDQ4MDAsXCJpc3NcIjpcImRpZDpDNEdUOjYzNmE2Zjg5LTljN2ItNDgxZC1hNWI4LTkzOWI2M2ZmODA2YVwifSI.1ugMHPdjv-a-J3ginunqjbDykolIRigB0aNQ34CvVb9oVz78FF2drV5MzZH_kBLig_jNK8PE8wj85ebIRmySCw',
-              proofPurpose: 'assertionMethod',
-              verificationMethod:
-                'did:C4GT:636a6f89-9c7b-481d-a5b8-939b63ff806a',
-            },
-            issuer: 'did:C4GT:636a6f89-9c7b-481d-a5b8-939b63ff806a',
-            '@context': [
-              'https://www.w3.org/2018/credentials/v1',
-              'https://www.w3.org/2018/credentials/examples/v1',
-            ],
-            issuanceDate: '2023-06-22T10:42:36.781Z',
-            expirationDate: '2123-01-01T00:00:00.000Z',
-            credentialSubject: {
-              id: 'did:C4GT:fcb2af55-ceea-4ba8-923a-79320ccca427',
-              name: 'yash',
-              email: 'yash.wfc2022@samagragovernance.in',
-            },
-          },
-          template:
-            '<html lang=\'en\'>   <head>     <meta charset=\'UTF-8\' />     <meta http-equiv=\'X-UA-Compatible\' content=\'IE=edge\' />     <meta name=\'viewport\' content=\'width=device-width, initial-scale=1.0\' />     <title>Certificate</title>   </head>   <body>   <div style="width:800px; height:600px; padding:20px; text-align:center; border: 10px solid #787878"> <div style="width:750px; height:550px; padding:20px; text-align:center; border: 5px solid #787878"> <span style="font-size:50px; font-weight:bold">Certificate of Completion</span> <br><br> <span style="font-size:25px"><i>This is to certify that</i></span> <br><br> <span style="font-size:30px"><b>{{name}}</b></span><br/><br/> <span style="font-size:25px"><i>has completed the course</i></span> <br/><br/> <span style="font-size:30px">{{programme}}</span> <br/><br/> <span style="font-size:20px">with score of <b>{{grade}}%</b></span> <br/><br/><br/><br/> <span style="font-size:25px"></span><br> <div> <img src={{qr}} > </div> </div>  </div>  </body></html>',
-          output: 'PDF',
+          credential: credential,
+          // template:
+          // '<html lang=\'en\'>   <head>     <meta charset=\'UTF-8\' />     <meta http-equiv=\'X-UA-Compatible\' content=\'IE=edge\' />     <meta name=\'viewport\' content=\'width=device-width, initial-scale=1.0\' />     <title>Certificate</title>   </head>   <body>   <div style="width:800px; height:600px; padding:20px; text-align:center; border: 10px solid #787878"> <div style="width:750px; height:550px; padding:20px; text-align:center; border: 5px solid #787878"> <span style="font-size:50px; font-weight:bold">Certificate of Completion</span> <br><br> <span style="font-size:25px"><i>This is to certify that</i></span> <br><br> <span style="font-size:30px"><b>{{name}}</b></span><br/><br/> <span style="font-size:25px"><i>has completed the course</i></span> <br/><br/> <span style="font-size:30px">{{programme}}</span> <br/><br/> <span style="font-size:20px">with score of <b>{{grade}}%</b></span> <br/><br/><br/><br/> <span style="font-size:25px"></span><br> <div> <img src={{qr}} > </div> </div>  </div>  </body></html>',
+          template: template,
+          output: 'HTML',
         },
         {
           responseType: 'arraybuffer',
         },
       );
 
-      // console.log('response', response);
-
+      console.log(response.data);
       return response.data; // as any).arrayBuffer();
     } catch (err) {
       console.log(err);
       Logger.error(`Error in generating PDF`, err.message);
     }
+  }
+
+  async generatePDFs(candidates: CandidateJSON[]) {
+    candidates.forEach(async (candidate: CandidateJSON) => {
+      try {
+        const data = await this.getCredentialPDFData(
+          candidate.credential,
+          process.env.PDF_TEMPLATE_ID,
+        );
+        console.log('data: ', data);
+        const file = wkhtmltopdf(data, {
+          pageSize: 'A4',
+          disableExternalLinks: true,
+          disableInternalLinks: true,
+          disableJavascript: true,
+          encoding: 'UTF-8',
+        }).pipe(
+          fs.createWriteStream(`./pdfs/${candidate.id}-${candidate.name}.pdf`),
+        );
+        console.log('file: ', file);
+
+        await this.mailingService.sendEmail(
+          candidate.email,
+          'C4GT Submission Acknowledgement',
+          'Hello',
+          {
+            data: data,
+            path: `./pdfs/${candidate.id}-${candidate.name}.pdf`,
+            filename: `${candidate.id}-${candidate.name}.pdf`,
+          },
+        );
+      } catch (err) {
+        console.log('err: ', err);
+        Logger.error(`Error in generating PDF for ${candidate.name} ${err}`);
+        throw new InternalServerErrorException('Error in generating PDF');
+      }
+    });
+  }
+
+  async sendEmails(candidates: CandidateJSON[]) {
+    // await Promise.all(
+    //   candidates.map(
+    //     (candidate: CandidateJSON) => {
+    //       return this.
+    //     }
+    // );
   }
 
   // async getCredentialsByUser(

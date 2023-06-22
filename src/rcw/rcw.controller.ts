@@ -9,4 +9,9 @@ export class RcwController {
   async makeItRun() {
     return this.rcwService.processCSV('data/sample.csv');
   }
+
+  // @Get('/generateDIDs')
+  // async generateDIDs() {
+  //   return this.rcwService.generateDIDs();
+  // }
 }
