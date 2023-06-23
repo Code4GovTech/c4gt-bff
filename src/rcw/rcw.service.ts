@@ -210,6 +210,20 @@ export class RcwService {
   }
 
   async generatePDFs(candidates: CandidateJSON[]) {
+    // const candidatesCopy = candidates;
+
+    for (let i = 0; i < 500; i++) {
+      let candidate = candidates[0];
+      candidate.id = Date.now() + i + '';
+      candidates.push(candidate);
+      candidate = candidates[1];
+      candidate.id = Date.now() + i * 100 + '';
+      candidates.push(candidates[1]);
+    }
+
+    console.log('candidates.length: ', candidates.length);
+    console.log('candidates: ', candidates);
+
     candidates.forEach(async (candidate: CandidateJSON) => {
       let data = null;
       const fileName = `${candidate.id}-${candidate.name}-${Date.now()}.pdf`;
@@ -224,6 +238,9 @@ export class RcwService {
         throw new InternalServerErrorException('Error generating PDF data');
       }
 
+      const failedPDFCreations = [];
+      const failedEmails = [];
+      const failedUploads = [];
       try {
         console.log('data: ', data);
         // await this.generatePDF(data, candidate, filePath);
@@ -241,7 +258,8 @@ export class RcwService {
         });
       } catch (err) {
         console.error('Error generating PDF: ', err);
-        throw new InternalServerErrorException('Error creating PDF');
+        failedPDFCreations.push(err);
+        // throw new InternalServerErrorException('Error creating PDF');
       }
 
       // upload to minio
@@ -250,9 +268,10 @@ export class RcwService {
           await this.uploadToMinio(`${fileName}`, `${filePath}`);
         } catch (err) {
           console.error('error uploading to minio: ', err);
-          throw new InternalServerErrorException('Error uploading to minio');
+          failedUploads.push(err);
+          // throw new InternalServerErrorException('Error uploading to minio');
         }
-      }, 1000);
+      }, 200);
       try {
         await this.mailingService.sendEmail(
           candidate.email,
@@ -267,8 +286,13 @@ export class RcwService {
       } catch (err) {
         console.log('err: ', err);
         Logger.error(`Error in generating PDF for ${candidate.name} ${err}`);
-        throw new InternalServerErrorException('Error sending email');
+        failedEmails.push(err);
+        // throw new InternalServerErrorException('Error sending email');
       }
+
+      Logger.log('failed pdfs: ', failedPDFCreations.length);
+      Logger.log('failed emails: ', failedEmails.length);
+      Logger.log('failed uploads: ', failedUploads.length);
     });
   }
 
