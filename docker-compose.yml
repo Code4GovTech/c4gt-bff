@@ -1,0 +1,9 @@
+version: '3'
+services:
+  c4gt-bff:
+    image: c4gt-bff 
+    build: https://github.com/techsavvyash/c4gt-bff.git
+    env_file: .env
+    restart: always
+    ports:
+      - '${SERVICE_PUBLIC_PORT}:3001'
