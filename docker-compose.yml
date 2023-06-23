@@ -5,4 +5,4 @@ services:
     build: https://github.com/techsavvyash/c4gt-bff.git
     env_file: .env
     ports:
-      - '3000:3001'
+      - '${SERVICE_PUBLIC_PORT}:3001'
