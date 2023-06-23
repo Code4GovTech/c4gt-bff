@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+      }
+
+      .certificate-container {
+        position: relative;
+        color: rgb(4, 19, 54);
+        height: 100vh;
+        background-image: url('./templates/border2.png');
+        background-repeat: no-repeat;
+        background-size: 800px 500px;
+        background-position: center;
+        font-family: 'Times New Roman', Times, serif;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+
+      .certificate-content {
+        position: relative;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+        height: 460px;
+        width: 770px;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .heading {
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+      }
+
+      .main-text {
+        margin-left: 175px;
+      }
+
+      .main-heading,
+      .main-para {
+        width: 350px;
+        margin: 0;
+        text-align: center;
+      }
+
+      .main-heading{
+        border-bottom: 1px solid black;
+      }
+
+      .main-para {
+        margin-top: 5px;
+      }
+
+      .certificate-logo {
+        margin-left: 30px;
+        width: 150px;
+        height: 160px;
+      }
+
+      .certificate-logo img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .certificate-content p {
+        font-size: 18px;
+      }
+
+      .certificate-images {
+        margin-top: 30px;
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        width: 100%;
+      }
+
+      .certificate-images img {
+        margin: 0 20px;
+      }
+
+      .qr-img {
+        border: 1px solid black;
+        border-radius: 5px;
+        text-align: center;
+        line-height: 120px;
+        width: 120px;
+        height: 120px;
+      }
+
+      .footer-images {
+        bottom: 0;
+        right: 0;
+        display: flex;
+        border-radius: 15px;
+        -webkit-box-shadow: -2px -4px 3px 0px rgba(0, 0, 0, 0.25);
+        -moz-box-shadow: -2px -4px 3px 0px rgba(0, 0, 0, 0.25);
+        box-shadow: -2px -4px 3px 0px rgba(0, 0, 0, 0.25);
+      }
+
+      .footer-images p {
+        font-size: 12px;
+      }
+
+      .footer-images img {
+        height: 35px;
+        width: 60px;
+      }
+
+      .bottom-text {
+        position: relative;
+        background-color: rgb(4, 19, 54);
+        color: white;
+        text-align: center;
+        padding: 10px 0px;
+        width: 800px;
+        margin: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="certificate-container">
+      <div class="certificate-content">
+        <div class="heading">
+          <div class="main-text">
+            <h1 class="main-heading">CERTIFICATE OF PARTICIPATION</h1>
+            <p class="main-para">This is to certify that</p>
+          </div>
+          <div class="certificate-logo">
+            <img src="./templates/C4GT.png" alt="C4GT Logo" />
+          </div>
+        </div>
+        <h1 style="color: rgb(231, 55, 84); margin: 0 35px 25px 0">{{name}}</h1>
+        <div>
+          <p style="margin: 0; margin-right: 35px">
+            successfully submitted a proposal for the
+          </p>
+          <br />
+          <p style="margin: 0; margin-right: 35px">
+            Code For GovTech Mentoring Program 2023.
+          </p>
+        </div>
+        <div class="certificate-images">
+          <img class="qr-img" src="{{qr}}" alt="QR Code" />
+          <div class="footer-images" style="background-color: white">
+            <div>
+              <p>Knowledge Partners</p>
+              <div>
+                <img src="./templates/DPGA.svg" alt="DPGA" />
+                <img src="./templates/OMI.png" alt="OMI" />
+              </div>
+            </div>
+            <div>
+              <p>Community Partner</p>
+              <img src="./templates/GitHub.png" alt="Github" />
+            </div>
+            <div>
+              <p>Organizer</p>
+              <img src="./templates/Samagrax.png" alt="SamagraX" />
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="bottom-text">Issued by the C4GT Organising Team</div>
+    </div>
+  </body>
+</html>
