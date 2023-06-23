@@ -50,33 +50,38 @@ export class MailingService {
   ) {
     await this.setTransporter();
 
-    await this.mailerService
-      .sendMail({
-        transporterName: 'gmail',
-        to,
-        from: process.env.EMAIL_ID,
-        subject,
-        html,
-        attachments: [
-          {
-            // path: attachment.path,
-            // path: attachment.path,
-            // content: Buffer.from(attachment.path).toString('base64'),
-            contentType: 'application/pdf',
-            filename: attachment.filename,
-            encoding: 'base64',
-            content: Buffer.from(attachment.data).toString('base64'),
-            contentDisposition: 'attachment',
-          },
-        ],
-      })
-      .then((success) => {
-        console.log(success);
-        Logger.log('email sent');
-      })
-      .catch((err) => {
-        console.log(err);
-        Logger.error(err);
-      });
+    return new Promise((resolve, reject) => {
+      this.mailerService
+        .sendMail({
+          transporterName: 'gmail',
+          to,
+          from: process.env.EMAIL_ID,
+          subject,
+          html,
+          attachments: [
+            {
+              // path: attachment.path,
+              // path: attachment.path,
+              // content: Buffer.from(attachment.path).toString('base64'),
+              contentType: 'application/pdf',
+              filename: attachment.filename,
+              href: attachment.path,
+              // encoding: 'base64',
+              // content: Buffer.from(attachment.data).toString('base64'),
+              // contentDisposition: 'attachment',
+            },
+          ],
+        })
+        .then((success) => {
+          console.log(success);
+          Logger.log('email sent');
+          resolve(success);
+        })
+        .catch((err) => {
+          console.log(err);
+          Logger.error(err);
+          reject(err);
+        });
+    });
   }
 }

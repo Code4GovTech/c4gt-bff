@@ -5,6 +5,7 @@ import { RcwModule } from './rcw/rcw.module';
 import { ConfigModule } from '@nestjs/config';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { MailingModule } from './mailing/mailing.module';
+import { MinioModule } from './minio/minio.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { MailingModule } from './mailing/mailing.module';
       isGlobal: true,
     }),
     MailingModule,
+    MinioModule,
   ],
   controllers: [AppController],
   providers: [AppService],
