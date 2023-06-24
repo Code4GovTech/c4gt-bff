@@ -77,14 +77,26 @@ export class RcwService {
     jsonArray.forEach((candidate: CandidateJSON, idx: number) => {
       idxIdMap[candidate.email] = idx;
     });
-    const candidatesWithDIDs = await this.generateDIDs(
-      jsonArray as CandidateJSON[],
-      idxIdMap,
-    );
-    const candidatesWithCredentials = await this.generateCredential(
-      candidatesWithDIDs,
-      idxIdMap,
-    );
+    let candidatesWithDIDs, candidatesWithCredentials;
+    try {
+      candidatesWithDIDs = await this.generateDIDs(
+        jsonArray as CandidateJSON[],
+        idxIdMap,
+      );
+    } catch (err) {
+      Logger.error('Error in generating DIDs', err);
+      throw new InternalServerErrorException(err);
+    }
+
+    try {
+      candidatesWithCredentials = await this.generateCredential(
+        candidatesWithDIDs,
+        idxIdMap,
+      );
+    } catch (err) {
+      Logger.error('Error in generating credentials', err);
+      throw new InternalServerErrorException(err);
+    }
 
     await this.generatePDFs(candidatesWithCredentials);
     return candidatesWithCredentials;
@@ -228,7 +240,8 @@ export class RcwService {
         `${process.env.CREDENTIAL_BASE_URL}/credentials/render`,
         {
           credential: credential,
-          template: `<!DOCTYPEhtml><html><head><style>body{margin:0;padding:0;}.certificate-container{position:relative;color:#041336;height:100vh;background-image:url('http://139.59.20.91:9000/templates/handlebar_certi/border2.png');background-repeat:no-repeat;background-size:800px500px;background-position:center;font-family:'TimesNewRoman',Times,serif;display:flex;flex-direction:column;justify-content:space-between;}.certificate-content{position:relative;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;height:460px;width:770px;display:flex;flex-direction:column;}.heading{display:flex;justify-content:space-around;align-items:center;}.main-text{margin-left:175px;}.main-heading,.main-para{width:350px;margin:0;text-align:center;}.main-heading{border-bottom:1pxsolidblack;}.main-para{margin-top:5px;}.certificate-logo{margin-left:30px;width:150px;height:160px;}.certificate-logoimg{width:100%;height:100%;object-fit:cover;}.certificate-contentp{font-size:18px;}.certificate-images{margin-top:30px;display:flex;align-items:flex-end;justify-content:space-between;width:100%;}.certificate-imagesimg{margin:020px;}.qr-img{border:1pxsolidblack;border-radius:5px;text-align:center;line-height:120px;width:120px;height:120px;}.footer-images{bottom:0;right:0;display:flex;border-radius:15px;-webkit-box-shadow:-2px-4px3px0pxrgba(0,0,0,0.25);-moz-box-shadow:-2px-4px3px0pxrgba(0,0,0,0.25);box-shadow:-2px-4px3px0pxrgba(0,0,0,0.25);}.footer-imagesp{font-size:12px;}.footer-imagesimg{height:35px;width:60px;}.bottom-text{position:relative;background-color:#041336;color:white;text-align:center;padding:10px0px;width:800px;margin:auto;}</style></head><body><divclass=\"certificate-container\"><divclass=\"certificate-content\"><divclass=\"heading\"><divclass=\"main-text\"><h1class=\"main-heading\">CERTIFICATEOFPARTICIPATION</h1><pclass=\"main-para\">Thisistocertifythat</p></div><divclass=\"certificate-logo\"><imgsrc=\"http://139.59.20.91:9000/templates/handlebar_certi/C4GT.png\"alt=\"C4GTLogo\"/></div></div><h1style=\"color:#e73754;margin:035px25px0\">{{name}}{{id}}</h1><div><pstyle=\"margin:0;margin-right:35px\">successfullysubmittedaproposalforthe</p><br/><pstyle=\"margin:0;margin-right:35px\">CodeForGovTechMentoringProgram2023.</p></div><div class=\"certificate-images\"><imgclass=\"qr-img\"src=\"{{qr}}\"alt=\"QRCode\"/><divclass=\"footer-images\"style=\"background-color:white\"><div><p>KnowledgePartners</p><div><imgsrc=\"http://139.59.20.91:9000/templates/handlebar_certi/DPGA.svg\"alt=\"DPGA\"/><imgsrc=\"http://139.59.20.91:9000/templates/handlebar_certi/OMI.png\"alt=\"OMI\"/></div></div><div><p>CommunityPartner</p><imgsrc=\"http://139.59.20.91:9000/templates/handlebar_certi/GitHub.png\"alt=\"Github\"/></div><div><p>Organizer</p><imgsrc=\"http://139.59.20.91:9000/templates/handlebar_certi/Samagrax.png\"alt=\"SamagraX\"/></div></div></div></div><divclass=\"bottom-text\">IssuedbytheC4GTOrganisingTeam</div></div></body></html>`,
+          template: fs.readFileSync('./templates/final.html', 'utf8'),
+          // template: `<!DOCTYPEhtml><html><head><style>body{margin:0;padding:0;}.certificate-container{position:relative;color:#041336;height:100vh;background-image:url('http://139.59.20.91:9000/templates/handlebar_certi/border2.png');background-repeat:no-repeat;background-size:800px500px;background-position:center;font-family:'TimesNewRoman',Times,serif;display:flex;flex-direction:column;justify-content:space-between;}.certificate-content{position:relative;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;height:460px;width:770px;display:flex;flex-direction:column;}.heading{display:flex;justify-content:space-around;align-items:center;}.main-text{margin-left:175px;}.main-heading,.main-para{width:350px;margin:0;text-align:center;}.main-heading{border-bottom:1pxsolidblack;}.main-para{margin-top:5px;}.certificate-logo{margin-left:30px;width:150px;height:160px;}.certificate-logoimg{width:100%;height:100%;object-fit:cover;}.certificate-contentp{font-size:18px;}.certificate-images{margin-top:30px;display:flex;align-items:flex-end;justify-content:space-between;width:100%;}.certificate-imagesimg{margin:020px;}.qr-img{border:1pxsolidblack;border-radius:5px;text-align:center;line-height:120px;width:120px;height:120px;}.footer-images{bottom:0;right:0;display:flex;border-radius:15px;-webkit-box-shadow:-2px-4px3px0pxrgba(0,0,0,0.25);-moz-box-shadow:-2px-4px3px0pxrgba(0,0,0,0.25);box-shadow:-2px-4px3px0pxrgba(0,0,0,0.25);}.footer-imagesp{font-size:12px;}.footer-imagesimg{height:35px;width:60px;}.bottom-text{position:relative;background-color:#041336;color:white;text-align:center;padding:10px0px;width:800px;margin:auto;}</style></head><body><divclass=\"certificate-container\"><divclass=\"certificate-content\"><divclass=\"heading\"><divclass=\"main-text\"><h1class=\"main-heading\">CERTIFICATEOFPARTICIPATION</h1><pclass=\"main-para\">Thisistocertifythat</p></div><divclass=\"certificate-logo\"><imgsrc=\"http://139.59.20.91:9000/templates/handlebar_certi/C4GT.png\"alt=\"C4GTLogo\"/></div></div><h1style=\"color:#e73754;margin:035px25px0\">{{name}}{{id}}</h1><div><pstyle=\"margin:0;margin-right:35px\">successfullysubmittedaproposalforthe</p><br/><pstyle=\"margin:0;margin-right:35px\">CodeForGovTechMentoringProgram2023.</p></div><div class=\"certificate-images\"><imgclass=\"qr-img\"src=\"{{qr}}\"alt=\"QRCode\"/><divclass=\"footer-images\"style=\"background-color:white\"><div><p>KnowledgePartners</p><div><imgsrc=\"http://139.59.20.91:9000/templates/handlebar_certi/DPGA.svg\"alt=\"DPGA\"/><imgsrc=\"http://139.59.20.91:9000/templates/handlebar_certi/OMI.png\"alt=\"OMI\"/></div></div><div><p>CommunityPartner</p><imgsrc=\"http://139.59.20.91:9000/templates/handlebar_certi/GitHub.png\"alt=\"Github\"/></div><div><p>Organizer</p><imgsrc=\"http://139.59.20.91:9000/templates/handlebar_certi/Samagrax.png\"alt=\"SamagraX\"/></div></div></div></div><divclass=\"bottom-text\">IssuedbytheC4GTOrganisingTeam</div></div></body></html>`,
           // template:
           //   '<html lang=\'en\'>   <head>     <meta charset=\'UTF-8\' />     <meta http-equiv=\'X-UA-Compatible\' content=\'IE=edge\' />     <meta name=\'viewport\' content=\'width=device-width, initial-scale=1.0\' />     <title>Certificate</title>   </head>   <body>   <div style="width:800px; height:600px; padding:20px; text-align:center; border: 10px solid #787878"> <div style="width:750px; height:550px; padding:20px; text-align:center; border: 5px solid #787878"> <span style="font-size:50px; font-weight:bold">Certificate of Completion</span> <br><br> <span style="font-size:25px"><i>This is to certify that</i></span> <br><br> <span style="font-size:30px"><b>{{name}}</b></span><br/><br/> <span style="font-size:25px"><i>has completed the course</i></span> <br/><br/> <span style="font-size:30px">{{programme}}</span> <br/><br/> <span style="font-size:20px">with score of <b>{{grade}}%</b></span> <br/><br/><br/><br/> <span style="font-size:25px"></span><br> <div> <img src={{qr}} > </div> </div>  </div>  </body></html>',
           // template: template,
@@ -255,6 +268,31 @@ export class RcwService {
     }
   }
 
+  genPdfFromWKHTML(data, filePath) {
+    return new Promise((resolve, reject) => {
+      wkhtmltopdf(
+        data,
+        {
+          // pageSize: 'A3',
+          // height: 550,
+          // width: 850,
+          orientation: 'landscape',
+          disableExternalLinks: false,
+          disableInternalLinks: false,
+          disableJavascript: false,
+          encoding: 'UTF-8',
+        },
+        (err, stream) => {
+          if (err) reject(err);
+          else {
+            stream.pipe(fs.createWriteStream(filePath));
+            resolve(stream);
+          }
+        },
+      );
+    });
+  }
+
   async generatePDFs(candidates: CandidateJSON[]) {
     const failedPDFCreations = [];
     const failedUploads = [];
@@ -263,14 +301,18 @@ export class RcwService {
 
     for (let i = 0; i < candidates.length; i++) {
       const candidate = candidates[i];
-      const fileName = `${candidate.name}-${Date.now()}.pdf`;
+      const fileName = `${candidate.id}_${candidate.name}.pdf`;
       const filePath = `./pdfs/${fileName}`;
       // GENERATE QR
       const qr = await this.renderAsQR(candidates[i].credential);
       console.time('pdfCreation');
       try {
-
         await createPDF({ name: candidate.name, qr: qr }, filePath);
+        // const template = Handlebars.compile(
+        //   fs.readFileSync('./templates/final.html', 'utf8'),
+        // );
+        // const data = template({ name: candidate.name, qr: qr });
+        // await this.genPdfFromWKHTML(data, filePath);
       } catch (er) {
         console.log('eror in pdf generation: ', er);
         failedPDFCreations.push(candidate);
@@ -279,7 +321,7 @@ export class RcwService {
       console.timeEnd('pdfCreation');
       const minioURL = `http://${process.env.MINIO_ENDPOINT}:${process.env.MINIO_PORT}/${process.env.MINIO_BUCKETNAME}/${fileName}`;
       // setTimeout(async () => {
-      console.time('uploadToMinio');
+      /*console.time('uploadToMinio');
       try {
         await this.uploadToMinio(`${fileName}`, `${filePath}`);
         fileCandidateMapping[candidate.id] = { minioURL, filePath, fileName };
@@ -288,10 +330,10 @@ export class RcwService {
         failedUploads.push(candidate);
         // throw new InternalServerErrorException('Error uploading to minio');
       }
-      console.timeEnd('uploadToMinio');
+      console.timeEnd('uploadToMinio');*/
       // }, 100);
     }
-
+    /*
     // sending emails
     for (let i = 0; i < candidates.length; i++) {
       const candidate = candidates[i];
@@ -315,22 +357,23 @@ export class RcwService {
         failedEmails.push(candidate);
         // throw new InternalServerErrorException('Error sending email');
       }
-    }
+  }*/
+
     // console.log('candidates.length: ', candidates.length);
     // console.log('candidates: ', candidates);
 
     // candidates.forEach(async (candidate: CandidateJSON) => {
     //   const data = null;
 
-    //   // try {
-    //   //   data = await this.getCredentialPDFData(
-    //   //     candidate.credential,
-    //   //     process.env.PDF_TEMPLATE_ID,
-    //   //   );
-    //   // } catch (err) {
-    //   //   console.error('Error getting PDF data: ', err);
-    //   //   throw new InternalServerErrorException('Error generating PDF data');
-    //   // }
+    // try {
+    //   data = await this.getCredentialPDFData(
+    //     candidate.credential,
+    //     process.env.PDF_TEMPLATE_ID,
+    //   );
+    // } catch (err) {
+    //   console.error('Error getting PDF data: ', err);
+    //   throw new InternalServerErrorException('Error generating PDF data');
+    // }
 
     //   // const failedPDFCreations = [];
     //   // const failedEmails = [];
@@ -339,17 +382,17 @@ export class RcwService {
     //   //   console.log('data: ', data);
     //   //   // await this.generatePDF(data, candidate, filePath);
 
-    //   //   await new Promise((resolve, reject) => {
-    //   //     wkhtmltopdf(data, {
-    //   //       pageSize: 'A4',
-    //   //       disableExternalLinks: true,
-    //   //       disableInternalLinks: true,
-    //   //       disableJavascript: true,
-    //   //       encoding: 'UTF-8',
-    //   //     }).pipe(fs.createWriteStream(`${ filePath }`));
-    //   //     resolve(1);
-    //   //     // console.log('file: ', file);
-    //   //   });
+    // //   //   await new Promise((resolve, reject) => {
+    //       // wkhtmltopdf(data, {
+    //       //   pageSize: 'A4',
+    //       //   disableExternalLinks: true,
+    //       //   disableInternalLinks: true,
+    //       //   disableJavascript: true,
+    //       //   encoding: 'UTF-8',
+    //       // }).pipe(fs.createWriteStream(`${ filePath }`));
+    //       resolve(1);
+    //       // console.log('file: ', file);
+    //     });
     //   // } catch (err) {
     //   //   console.error('Error generating PDF: ', err);
     //   //   failedPDFCreations.push(err);
