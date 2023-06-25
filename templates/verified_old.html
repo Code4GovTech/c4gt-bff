@@ -1,11 +1,14 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Certificate</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Ysabeau+Office:ital,wght@0,300;0,400;0,500;0,600;0,700;0,900;0,1000;1,400&display=swap"
       rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Ysabeau+Office:ital,wght@0,300;0,400;0,500;0,600;0,700;0,900;0,1000;1,400&display=swap"
     />
 
     <style>
@@ -19,10 +22,10 @@
         position: relative;
         color: rgb(4, 19, 54);
         height: 100vh;
-        background-image: url("http://139.59.20.91:9000/c4gt/border2.png");
+        background-image: url("http://139.59.20.91:9000/c4gt/verifiedBg2.png");
         background-repeat: no-repeat;
         background-size: 850px 550px;
-        background-position: center;        
+        background-position: center;
         display: flex;
         flex-direction: column;
         justify-content: space-between;
@@ -111,12 +114,17 @@
         -webkit-box-shadow: -2px -4px 3px 0px rgba(0, 0, 0, 0.25);
         -moz-box-shadow: -2px -4px 3px 0px rgba(0, 0, 0, 0.25);
         box-shadow: -2px -4px 3px 0px rgba(0, 0, 0, 0.25);
-        margin-bottom: -8px;        
+        margin-bottom: -8px;
       }
 
       .footer-images p {
         font-size: 12px;
       }
+
+      /* .footer-images img {
+        height: 35px;
+        width: 60px;
+      } */
 
       .bottom-text {
         position: relative;
@@ -125,16 +133,15 @@
         font-family: "Ysabeau Office", sans-serif;
         text-align: center;
         padding: 10px 0px;
-        width: 841px;
+        width: 840px;
         margin: auto;
-        margin-left: 27px;
       }
     </style>
   </head>
   <body>
     <div class="certificate-container">
-      <div class="certificate-content">
-        <div class="heading">
+      <main class="certificate-content">
+        <section class="heading">
           <div class="main-text">
             <h1 class="main-heading" style="font-weight: 700">
               CERTIFICATE OF PARTICIPATION
@@ -144,7 +151,7 @@
           <div class="certificate-logo">
             <img src="http://139.59.20.91:9000/c4gt/C4GT.png" alt="C4GT Logo" />
           </div>
-        </div>
+        </section>
         <h1
           style="
             color: rgb(231, 55, 84);
@@ -154,7 +161,7 @@
         >
           {{name}}
         </h1>
-        <div>
+        <section>
           <p style="margin: 0; margin-right: 35px">
             successfully submitted a proposal for the
           </p>
@@ -162,22 +169,22 @@
           <p style="margin: 0; margin-right: 35px">
             Code For GovTech Mentoring Program 2023.
           </p>
-        </div>
-        <div class="certificate-images">
-          <img class="qr-img" src="{{qr}}" alt="QR Code" />
+        </section>
+        <section class="certificate-images">
+          <img class="qr-img" src="{{qrCodeSrc}}" alt="QR Code" />
           <div class="footer-images" style="background-color: white">
             <div>
               <p>Knowledge Partners</p>
               <div>
                 <img src="http://139.59.20.91:9000/c4gt/DPGA.svg" alt="DPGA" />
                 <img
-                  src="http://139.59.20.91:9000/c4gt/omidyar-network-india-logo.png"
+                  src="http://139.59.20.91:9000/c4gt/OMI.png"
                   alt="OMI"
-                  style="margin-left: -10px; height: 50px;"
+                  style="margin-bottom: 12px"
                 />
               </div>
             </div>
-            <div id="communityPartner">
+            <div>
               <p>Community Partner</p>
               <img
                 src="http://139.59.20.91:9000/c4gt/GitHub.png"
@@ -193,9 +200,9 @@
               />
             </div>
           </div>
-        </div>
-      </div>
-      <div class="bottom-text">Issued by the C4GT Organising Team</div>
+        </section>
+      </main>
+      <footer class="bottom-text">Issued by the C4GT Organising Team</footer>
     </div>
   </body>
 </html>

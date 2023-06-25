@@ -16,13 +16,18 @@
         margin: 0;
         padding: 0;
         font-family: "Ysabeau Office", sans-serif;
+        background: #041336;
+        overflow: auto;
       }
 
       .certificate-container {
         position: relative;
-        color: rgb(4, 19, 54);
-        height: 100vh;
-        background-image: url("http://139.59.20.91:9000/c4gt/verifiedBg2.png");
+        color: #041336;
+        width: 850px;
+        height: 550px;
+        padding: 30px;
+        background-image: url("http://139.59.20.91:9000/c4gt/verifiedBg.png"),
+          linear-gradient(130deg, #ffffff 0, #ffffff 51%, #ffffff 100%);
         background-repeat: no-repeat;
         background-size: 850px 550px;
         background-position: center;
@@ -37,8 +42,8 @@
         left: 50%;
         transform: translate(-50%, -50%);
         text-align: center;
-        height: 510px;
-        width: 820px;
+        height: 480px;
+        width: 795px;
         font-family: "Ysabeau Office", sans-serif;
         display: flex;
         flex-direction: column;
@@ -86,7 +91,7 @@
       }
 
       .certificate-images {
-        margin-top: 50px;
+        margin-top: 30px;
         display: flex;
         align-items: flex-end;
         justify-content: space-between;
@@ -114,7 +119,7 @@
         -webkit-box-shadow: -2px -4px 3px 0px rgba(0, 0, 0, 0.25);
         -moz-box-shadow: -2px -4px 3px 0px rgba(0, 0, 0, 0.25);
         box-shadow: -2px -4px 3px 0px rgba(0, 0, 0, 0.25);
-        margin-bottom: -8px;
+        /* margin-bottom: 10px; */
       }
 
       .footer-images p {
@@ -128,12 +133,12 @@
 
       .bottom-text {
         position: relative;
-        background-color: rgb(4, 19, 54);
+        background-color: #041336;
         color: white;
         font-family: "Ysabeau Office", sans-serif;
         text-align: center;
         padding: 10px 0px;
-        width: 840px;
+        width: 803px;
         margin: auto;
       }
     </style>
@@ -154,7 +159,7 @@
         </section>
         <h1
           style="
-            color: rgb(231, 55, 84);
+            color: #e73754;
             margin: 0 35px 25px 0;
             text-transform: capitalize;
           "
@@ -171,32 +176,33 @@
           </p>
         </section>
         <section class="certificate-images">
-          <img class="qr-img" src="{{qrCodeSrc}}" alt="QR Code" />
+          <img class="qr-img" src="{{qr}}" alt="QR Code" />
           <div class="footer-images" style="background-color: white">
             <div>
               <p>Knowledge Partners</p>
               <div>
                 <img src="http://139.59.20.91:9000/c4gt/DPGA.svg" alt="DPGA" />
                 <img
-                  src="http://139.59.20.91:9000/c4gt/OMI.png"
+                  src="http://139.59.20.91:9000/c4gt/omidyar-network-india-logo.png"
                   alt="OMI"
-                  style="margin-bottom: 12px"
+                  style="margin-left: -10px; height: 50px;"
                 />
               </div>
             </div>
             <div>
               <p>Community Partner</p>
               <img
-                src="http://139.59.20.91:9000/c4gt/GitHub.png"
+                src="http://139.59.20.91:9000/c4gt/GitHub_logo.png"
                 alt="Github"
-                style="margin-top: 4px"
+                style="margin-top: 8px; height: 40px;"
               />
             </div>
             <div>
               <p>Organizer</p>
               <img
-                src="http://139.59.20.91:9000/c4gt/Samagrax.png"
+                src="http://139.59.20.91:9000/c4gt/SamagraX%20-%201.png"
                 alt="SamagraX"
+                style="height: 50px;"
               />
             </div>
           </div>

@@ -38,22 +38,18 @@ export class RcwService {
       candidatesWithDIDs = await this.generateDIDs(
         jsonArray as CandidateJSON[],
         idxIdMap,
-      ).then((res) => {
-        try {
-          fs.writeFileSync(
-            './output/dids.json',
-            JSON.stringify(candidatesWithDIDs),
-          );
-        } catch (err) {
-          console.log('error writing to file');
-        }
-      });
+      );
     } catch (err) {
       Logger.error('Error in generating DIDs', err);
       throw new InternalServerErrorException(err);
     }
 
     try {
+      // console.log(candidatesWithDIDs);
+      fs.writeFileSync(
+        `./output/dids-${Date.now()}.json`,
+        JSON.stringify(candidatesWithDIDs),
+      );
       candidatesWithCredentials = await this.generateCredential(
         candidatesWithDIDs,
         idxIdMap,
@@ -65,6 +61,10 @@ export class RcwService {
     }
 
     await this.generatePDFs(candidatesWithCredentials);
+    fs.writeFileSync(
+      `./output/candidates-${Date.now()}.json`,
+      JSON.stringify(candidatesWithCredentials),
+    );
     return candidatesWithCredentials;
     return candidatesWithDIDs;
 
@@ -75,69 +75,32 @@ export class RcwService {
     candidates: CandidateJSON[],
     idxIdMap: { [k: string]: number },
   ) {
-    for (let i = 0; i < candidates.length; i++) {
-      const candidate = candidates[i];
-      const response: AxiosResponse = await this.httpService.axiosRef.post(
-        `${process.env.IDENTITY_BASE_URL}/did/generate`,
-        {
-          content: [
-            {
-              alsoKnownAs: [candidate.email, candidate.name, candidate.id],
-              services: [
-                {
-                  id: 'C4GT',
-                  type: 'ProposalAcknowledgement2023',
-                  serviceEndpoint: {
-                    '@context': 'schema.identity.foundation/hub',
-                    '@type': 'C4GTEndpoint',
-                    instance: ['https://www.codeforgovtech.in/'],
-                  },
-                },
-              ],
-              method: 'C4GT',
-            },
-          ],
-        },
-      );
-
-      try {
-        const did = response.data[0].id;
-        candidates[idxIdMap[response.data[0].alsoKnownAs[0]]].did = did;
-        idxIdMap[did] = idxIdMap[response.data[0].alsoKnownAs[0]];
-      } catch (err) {
-        Logger.error(`Error in mapping did of user`);
-      }
-    }
-    // const responses = await Promise.all(
-    //   candidates.map((candidate: CandidateJSON, idx: number) => {
-    //     // generate DID
-    //     return this.httpService.axiosRef.post(
-    //       `${process.env.IDENTITY_BASE_URL}/did/generate`,
-    //       {
-    //         content: [
-    //           {
-    //             alsoKnownAs: [candidate.email, candidate.name, candidate.id],
-    //             services: [
-    //               {
-    //                 id: 'C4GT',
-    //                 type: 'ProposalAcknowledgement2023',
-    //                 serviceEndpoint: {
-    //                   '@context': 'schema.identity.foundation/hub',
-    //                   '@type': 'C4GTEndpoint',
-    //                   instance: ['https://www.codeforgovtech.in/'],
-    //                 },
+    const res = [];
+    // for (let i = 0; i < candidates.length; i++) {
+    //   const candidate = candidates[i];
+    //   const response: AxiosResponse = await this.httpService.axiosRef.post(
+    //     `${process.env.IDENTITY_BASE_URL}/did/generate`,
+    //     {
+    //       content: [
+    //         {
+    //           alsoKnownAs: [candidate.email, candidate.name, candidate.id],
+    //           services: [
+    //             {
+    //               id: 'C4GT',
+    //               type: 'ProposalAcknowledgement2023',
+    //               serviceEndpoint: {
+    //                 '@context': 'schema.identity.foundation/hub',
+    //                 '@type': 'C4GTEndpoint',
+    //                 instance: ['https://www.codeforgovtech.in/'],
     //               },
-    //             ],
-    //             method: 'C4GT',
-    //           },
-    //         ],
-    //       },
-    //     );
-    //   }),
-    // );
+    //             },
+    //           ],
+    //           method: 'C4GT',
+    //         },
+    //       ],
+    //     },
+    //   );
 
-    // // const failedUserIds = [];
-    // responses.forEach((response: AxiosResponse) => {
     //   try {
     //     const did = response.data[0].id;
     //     candidates[idxIdMap[response.data[0].alsoKnownAs[0]]].did = did;
@@ -145,7 +108,49 @@ export class RcwService {
     //   } catch (err) {
     //     Logger.error(`Error in mapping did of user`);
     //   }
-    // });
+    //   res.push(candidate);
+    // }
+
+    // return res;
+    const responses = await Promise.all(
+      candidates.map((candidate: CandidateJSON, idx: number) => {
+        // generate DID
+        return this.httpService.axiosRef.post(
+          `${process.env.IDENTITY_BASE_URL}/did/generate`,
+          {
+            content: [
+              {
+                alsoKnownAs: [candidate.email, candidate.name, candidate.id],
+                services: [
+                  {
+                    id: 'C4GT',
+                    type: 'ProposalAcknowledgement2023',
+                    serviceEndpoint: {
+                      '@context': 'schema.identity.foundation/hub',
+                      '@type': 'C4GTEndpoint',
+                      instance: ['https://www.codeforgovtech.in/'],
+                    },
+                  },
+                ],
+                method: 'C4GT',
+              },
+            ],
+          },
+        );
+      }),
+    );
+
+    // const failedUserIds = [];
+    responses.forEach((response: AxiosResponse) => {
+      try {
+        console.log(response.data);
+        const did = response.data[0].id;
+        candidates[idxIdMap[response.data[0].alsoKnownAs[0]]].did = did;
+        idxIdMap[did] = idxIdMap[response.data[0].alsoKnownAs[0]];
+      } catch (err) {
+        Logger.error(`Error in mapping did of user`);
+      }
+    });
 
     return candidates;
   }
@@ -295,7 +300,7 @@ export class RcwService {
       }
       console.timeEnd('pdfCreation');
       const minioURL = `http://${process.env.MINIO_ENDPOINT}:${process.env.MINIO_PORT}/${process.env.MINIO_BUCKETNAME}/${fileName}`;
-      // setTimeout(async () => {
+
       console.time('uploadToMinio');
       try {
         await this.uploadToMinio(`${fileName}`, `${filePath}`);
@@ -366,7 +371,10 @@ export class RcwService {
       } else {
         return 'Invalid credential';
       }
-    } catch (err) {}
+    } catch (err) {
+      console.log('err: ', err);
+      throw new InternalServerErrorException(err);
+    }
   }
 
   private async uploadToMinio(fileName, file) {

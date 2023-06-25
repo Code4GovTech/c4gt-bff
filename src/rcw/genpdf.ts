@@ -12,7 +12,7 @@ export async function createPDF(data, pdfPath) {
   // const templateHtml = fs.readFileSync('./templates/final.html', 'utf8');
   // console.log('templateHtml', templateHtml);
   // const template = handlebars.compile(templateHtml);
-  const html = compileTemplate(data, 'final.hmtl');
+  const html = compileTemplate(data, 'final.html');
 
   fs.writeFileSync(`./htmls/${pdfPath.split('/')[2]}.html`, html);
 
