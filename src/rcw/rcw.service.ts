@@ -349,10 +349,13 @@ export class RcwService {
 
         console.log('data: ', data);
         const qr = await this.renderAsQR(data.id);
-        const html = compileTemplate({
-          name: data.credentialSubject.name,
-          qr: qr,
-        });
+        const html = compileTemplate(
+          {
+            name: data.credentialSubject.name,
+            qr: qr,
+          },
+          'verified.html',
+        );
         return html;
         // return {
         //   status: 'ISSUED',

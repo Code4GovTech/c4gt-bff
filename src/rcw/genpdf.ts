@@ -2,8 +2,8 @@ import * as handlebars from 'handlebars';
 import * as fs from 'fs';
 import puppeteer from 'puppeteer';
 
-export function compileTemplate(data: any) {
-  const templateHtml = fs.readFileSync('./templates/final.html', 'utf8');
+export function compileTemplate(data: any, templateName: string) {
+  const templateHtml = fs.readFileSync(`./templates/${templateName}`, 'utf8');
   // console.log('templateHtml', templateHtml);
   const template = handlebars.compile(templateHtml);
   return template(data);
@@ -12,7 +12,7 @@ export async function createPDF(data, pdfPath) {
   // const templateHtml = fs.readFileSync('./templates/final.html', 'utf8');
   // console.log('templateHtml', templateHtml);
   // const template = handlebars.compile(templateHtml);
-  const html = compileTemplate(data);
+  const html = compileTemplate(data, 'final.hmtl');
 
   fs.writeFileSync(`./htmls/${pdfPath.split('/')[2]}.html`, html);
 
