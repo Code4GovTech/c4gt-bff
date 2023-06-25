@@ -59,6 +59,7 @@ export class RcwService {
         idxIdMap,
       );
     } catch (err) {
+      console.log('err: ', err);
       Logger.error('Error in generating credentials', err);
       throw new InternalServerErrorException(err);
     }
