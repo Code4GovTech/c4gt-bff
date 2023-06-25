@@ -4,8 +4,5 @@ export type CandidateJSON = {
   email: string;
   did: string;
   credentialDID: string;
-  product: string;
-  project: string;
-  organization: string;
   credential: any;
 };

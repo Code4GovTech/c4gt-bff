@@ -1,5 +1,4 @@
-<body>
-<p>Dear Participant,</p><br>
+export const emailText = `<p>Dear Participant,</p><br>
 <p>We hope you are well. We really appreciate the efforts that you put in to make your submission. We know how much hard work and dedication it takes to create something cool and impactful. Please find a participation certificate attached as a token of appreciation.</p><br>
 <p>Sadly, we couldn’t shortlist your submission for the next round of the competition, but don’t worry, we have some great news for you.</p> <br>
 <p>We are super excited to tell you that we are launching the C4GT Community Program bringing all highly skilled coders like you under one roof.</p><br>
@@ -23,7 +22,7 @@ http://bit.ly/-C4GT<br>
 <p>Community Program Projects - https://www.codeforgovtech.in/community-projects </p> <br>
 <p><i>What is in it for you? </i></p><br>
 <p>This is an awesome chance for you to connect with other like-minded people, learn new skills and best of all <b>WIN BIG!!! Stand a chance to win exciting goodies bragging rights and community privileges on each PR that gets merged/reviewed!</b></p><br>
-<p>We hope that you will grab this opportunity and join us in building a fun and diverse community of changemakers. We can’t wait to see you join us! We wish you all the best for your future projects.</p>
+<p>We hope that you will grab this opportunity and join us in building a fun and diverse community of changemakers. We can’t wait to see you join us! We wish you all the best for your future projects.</p><br><br>
 <p>Cheers</p>
-The C4GT 2023 Team
-</body>
+<p>The C4GT 2023 Team</p>
+`;
