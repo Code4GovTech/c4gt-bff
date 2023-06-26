@@ -15,7 +15,7 @@
       body {
         margin: 0;
         padding: 0;
-        font-family: "Ysabeau Office", sans-serif;
+        font-family: 'Ysabeau Office', sans-serif;
         background: #041336;
         overflow: auto;
       }
@@ -26,7 +26,7 @@
         width: 850px;
         height: 550px;
         padding: 30px;
-        background-image: url("http://139.59.20.91:9000/c4gt/verifiedBg.png"),
+        background-image: url('https://cdn.codeforgovtech.in/c4gt/verifiedBg.png'),
           linear-gradient(130deg, #ffffff 0, #ffffff 51%, #ffffff 100%);
         background-repeat: no-repeat;
         background-size: 850px 550px;
@@ -44,19 +44,19 @@
         text-align: center;
         height: 480px;
         width: 795px;
-        font-family: "Ysabeau Office", sans-serif;
+        font-family: 'Ysabeau Office', sans-serif;
         display: flex;
         flex-direction: column;
       }
 
       .heading {
         display: flex;
-        justify-content: space-around;
+        justify-content: space-between;
         align-items: center;
       }
 
       .main-text {
-        margin-left: 175px;
+        margin-left: 25px;
       }
 
       .main-heading,
@@ -91,10 +91,10 @@
       }
 
       .certificate-images {
-        margin-top: 30px;
+        margin-top: 75px;
         display: flex;
-        align-items: flex-end;
-        justify-content: space-between;
+        align-items: center;
+        justify-content: center;
         width: 100%;
       }
 
@@ -109,6 +109,7 @@
         line-height: 120px;
         width: 120px;
         height: 120px;
+        margin-left: 20px;
       }
 
       .footer-images {
@@ -119,6 +120,7 @@
         -webkit-box-shadow: -2px -4px 3px 0px rgba(0, 0, 0, 0.25);
         -moz-box-shadow: -2px -4px 3px 0px rgba(0, 0, 0, 0.25);
         box-shadow: -2px -4px 3px 0px rgba(0, 0, 0, 0.25);
+        -webkit-appearance: none;
         /* margin-bottom: 10px; */
       }
 
@@ -135,7 +137,7 @@
         position: relative;
         background-color: #041336;
         color: white;
-        font-family: "Ysabeau Office", sans-serif;
+        font-family: 'Ysabeau Office', sans-serif;
         text-align: center;
         padding: 10px 0px;
         width: 803px;
@@ -147,6 +149,7 @@
     <div class="certificate-container">
       <main class="certificate-content">
         <section class="heading">
+          <img class="qr-img" src="{{qr}}" alt="QR Code" />
           <div class="main-text">
             <h1 class="main-heading" style="font-weight: 700">
               CERTIFICATE OF PARTICIPATION
@@ -154,7 +157,10 @@
             <p class="main-para">This is to certify that</p>
           </div>
           <div class="certificate-logo">
-            <img src="http://139.59.20.91:9000/c4gt/C4GT.png" alt="C4GT Logo" />
+            <img
+              src="https://cdn.codeforgovtech.in/c4gt/C4GT.svg"
+              alt="C4GT Logo"
+            />
           </div>
         </section>
         <h1
@@ -176,33 +182,36 @@
           </p>
         </section>
         <section class="certificate-images">
-          <img class="qr-img" src="{{qr}}" alt="QR Code" />
           <div class="footer-images" style="background-color: white">
             <div>
-              <p>Knowledge Partners</p>
+              <p style="margin-bottom: 0px">Knowledge Partners</p>
               <div>
-                <img src="http://139.59.20.91:9000/c4gt/DPGA.svg" alt="DPGA" />
                 <img
-                  src="http://139.59.20.91:9000/c4gt/omidyar-network-india-logo.png"
+                  src="https://cdn.codeforgovtech.in/c4gt/DPGA.svg"
+                  alt="DPGA"
+                  style="margin-bottom: 40px"
+                />
+                <img
+                  src="https://cdn.codeforgovtech.in/c4gt/omn.svg"
                   alt="OMI"
-                  style="margin-left: -10px; height: 50px;"
+                  style="margin-left: -10px; height: 50px; margin-bottom: 40px"
                 />
               </div>
             </div>
             <div>
-              <p>Community Partner</p>
+              <p style="margin-bottom: 0px">Community Partner</p>
               <img
-                src="http://139.59.20.91:9000/c4gt/GitHub_logo.png"
+                src="https://cdn.codeforgovtech.in/c4gt/GitHub_logo.svg"
                 alt="Github"
-                style="margin-top: 8px; height: 40px;"
+                style="height: 40px; margin-top: 5px"
               />
             </div>
             <div>
-              <p>Organizer</p>
+              <p style="margin-bottom: 0px">Organizer</p>
               <img
-                src="http://139.59.20.91:9000/c4gt/SamagraX%20-%201.png"
+                src="https://cdn.codeforgovtech.in/c4gt/SamagraX.svg"
                 alt="SamagraX"
-                style="height: 50px;"
+                style="height: 40px"
               />
             </div>
           </div>
