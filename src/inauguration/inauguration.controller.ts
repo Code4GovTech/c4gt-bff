@@ -15,8 +15,9 @@ export class InaugurationController {
     return this.inaugurationService.verifyToken(token);
   }
 
-  @Get('/status')
-  getStatus() {
+  @Get('/status/:token')
+  getStatus(@Param('token') token: string) {
     // Figure out how to store how many people have been inaugurated
+    return this.inaugurationService.getProgress(token);
   }
 }

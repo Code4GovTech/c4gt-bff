@@ -41,8 +41,8 @@ export class RcwService {
   }
 
   async processCSV(csvPath: string) {
-    const files = ['sample.csv', 'lista.csv', 'listb.csv', 'listc.csv'];
-    // const files = ['sample.csv'];
+    // const files = ['sample.csv', 'lista.csv', 'listb.csv', 'listc.csv'];
+    const files = ['sample.csv'];
     for (const file of files) {
       // setTimeout(async () => {
       //   // wait it out
@@ -99,7 +99,7 @@ export class RcwService {
         `./output/${file}.json`,
         JSON.stringify(candidatesWithCredentials),
       );
-      await this.generatePDFs(candidatesWithCredentials);
+      // await this.generatePDFs(candidatesWithCredentials);
     }
     // const failedPDFs = this.failedPDFs;
     // const newFiles = ['sample.csv'];
@@ -241,7 +241,7 @@ export class RcwService {
               ],
               id: 'C4GT',
               type,
-              issuer: 'did:C4GT:8a88baed-3d5b-448d-8dbf-6c184e59c7b7', //process.env.C4GT_DID,
+              issuer: process.env.C4GT_DID, //'did:C4GT:8a88baed-3d5b-448d-8dbf-6c184e59c7b7', 
               issuanceDate: new Date().toISOString(),
               expirationDate: new Date('2123-01-01T00:00:00Z').toISOString(),
               credentialSubject: {
