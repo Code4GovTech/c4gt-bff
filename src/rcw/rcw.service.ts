@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import * as csvToJson from 'csvtojson';
 import { CandidateJSON } from './rcw.interface';
-import { AxiosResponse } from 'axios';
+import { Axios, AxiosResponse } from 'axios';
 import * as wkhtmltopdf from 'wkhtmltopdf';
 import { MailerService } from '@nestjs-modules/mailer';
 import { MailingService } from 'src/mailing/mailing.service';
@@ -15,58 +15,108 @@ import * as fs from 'fs';
 import { compileTemplate, createPDF } from './genpdf';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const QRCode = require('qrcode');
-import { emailText } from 'src/mails.config';
+
+// import pLimit from 'p-limit';
+// const limit = pLimit(5);
+
+// import { emailText } from 'src/mails.config';
 @Injectable()
 export class RcwService {
+  private failedDIDs = [];
+  private failedCredentials = [];
+  private failedPDFs = [];
+  private failedEmails = [];
+  private failedMinioUploads = [];
+
   constructor(
     private readonly httpService: HttpService,
     private readonly mailerService: MailerService,
     private readonly mailingService: MailingService,
-  ) {}
+  ) {
+    this.failedCredentials = [];
+    this.failedDIDs = [];
+    this.failedEmails = [];
+    this.failedMinioUploads = [];
+    this.failedPDFs = [];
+  }
 
-  async processCSV(csvPath: string): Promise<CandidateJSON[]> {
-    const csvFilePath = csvPath;
-    const jsonArray = await csvToJson().fromFile(csvFilePath);
-    const idxIdMap = {};
+  async processCSV(csvPath: string) {
+    const files = ['sample.csv', 'lista.csv', 'listb.csv', 'listc.csv'];
+    // const files = ['sample.csv'];
+    for (const file of files) {
+      // setTimeout(async () => {
+      //   // wait it out
+      // }, 100);
+      console.log('Processing file: ', file);
+      const csvFilePath = './data/final/' + file;
+      const jsonArray = await csvToJson().fromFile(csvFilePath);
+      const idxIdMap = {};
+      jsonArray.forEach((candidate: CandidateJSON, idx: number) => {
+        idxIdMap[candidate.email] = idx;
+      });
 
-    jsonArray.forEach((candidate: CandidateJSON, idx: number) => {
-      idxIdMap[candidate.email] = idx;
-    });
+      let candidatesWithDIDs, candidatesWithCredentials;
+      try {
+        // console.log('jsonArray: ', jsonArray);
+        candidatesWithDIDs = await this.generateDIDs(
+          jsonArray as CandidateJSON[],
+          idxIdMap,
+        );
+      } catch (err) {
+        Logger.error('Error in generating DIDs', err);
+        throw new InternalServerErrorException(err);
+      }
 
-    let candidatesWithDIDs, candidatesWithCredentials;
-    try {
-      candidatesWithDIDs = await this.generateDIDs(
-        jsonArray as CandidateJSON[],
-        idxIdMap,
+      try {
+        // console.log(candidatesWithDIDs);
+        // fs.writeFileSync(
+        //   `./output/dids-${Date.now()}.json`,
+        //   JSON.stringify(candidatesWithDIDs),
+        // );
+        candidatesWithCredentials = await this.generateCredential(
+          candidatesWithDIDs,
+          idxIdMap,
+        );
+      } catch (err) {
+        console.log('err: ', err);
+        Logger.error('Error in generating credentials', err);
+        throw new InternalServerErrorException(err);
+      }
+
+      console.log(
+        'candidatesWithCredentials: ',
+        candidatesWithCredentials.length,
       );
-    } catch (err) {
-      Logger.error('Error in generating DIDs', err);
-      throw new InternalServerErrorException(err);
-    }
-
-    try {
-      // console.log(candidatesWithDIDs);
       fs.writeFileSync(
-        `./output/dids-${Date.now()}.json`,
-        JSON.stringify(candidatesWithDIDs),
+        `./output/${file}.json`,
+        JSON.stringify(candidatesWithCredentials),
       );
-      candidatesWithCredentials = await this.generateCredential(
-        candidatesWithDIDs,
-        idxIdMap,
-      );
-    } catch (err) {
-      console.log('err: ', err);
-      Logger.error('Error in generating credentials', err);
-      throw new InternalServerErrorException(err);
+      await this.generatePDFs(candidatesWithCredentials);
     }
+    // const failedPDFs = this.failedPDFs;
+    // const newFiles = ['sample.csv'];
+    // for (const file of newFiles) {
+    //   const pdfsToGenerate = JSON.parse(
+    //     fs.readFileSync(`./output/${file}.json`, 'utf-8'),
+    //   );
 
-    await this.generatePDFs(candidatesWithCredentials);
+    //   for (let i = 0; i < pdfsToGenerate.length; i++) {
+    //     const candidate = pdfsToGenerate[i];
+    //     try {
+    //       await this.generatePDFs(candidate);
+    //     } catch (err) {
+    //       Logger.error('Error in generating PDF', err);
+    //       this.failedPDFs.push(candidate.id);
+    //     }
+    //   }
+    // }
+
     fs.writeFileSync(
-      `./output/candidates-${Date.now()}.json`,
-      JSON.stringify(candidatesWithCredentials),
+      `./output/failedPDFs.json`,
+      JSON.stringify(this.failedPDFs),
     );
-    return candidatesWithCredentials;
-    return candidatesWithDIDs;
+    return 'Done';
+    // return candidatesWithDIDs;
 
     // render and send emails
   }
@@ -75,43 +125,6 @@ export class RcwService {
     candidates: CandidateJSON[],
     idxIdMap: { [k: string]: number },
   ) {
-    const res = [];
-    // for (let i = 0; i < candidates.length; i++) {
-    //   const candidate = candidates[i];
-    //   const response: AxiosResponse = await this.httpService.axiosRef.post(
-    //     `${process.env.IDENTITY_BASE_URL}/did/generate`,
-    //     {
-    //       content: [
-    //         {
-    //           alsoKnownAs: [candidate.email, candidate.name, candidate.id],
-    //           services: [
-    //             {
-    //               id: 'C4GT',
-    //               type: 'ProposalAcknowledgement2023',
-    //               serviceEndpoint: {
-    //                 '@context': 'schema.identity.foundation/hub',
-    //                 '@type': 'C4GTEndpoint',
-    //                 instance: ['https://www.codeforgovtech.in/'],
-    //               },
-    //             },
-    //           ],
-    //           method: 'C4GT',
-    //         },
-    //       ],
-    //     },
-    //   );
-
-    //   try {
-    //     const did = response.data[0].id;
-    //     candidates[idxIdMap[response.data[0].alsoKnownAs[0]]].did = did;
-    //     idxIdMap[did] = idxIdMap[response.data[0].alsoKnownAs[0]];
-    //   } catch (err) {
-    //     Logger.error(`Error in mapping did of user`);
-    //   }
-    //   res.push(candidate);
-    // }
-
-    // return res;
     const responses = await Promise.all(
       candidates.map((candidate: CandidateJSON, idx: number) => {
         // generate DID
@@ -143,16 +156,60 @@ export class RcwService {
     // const failedUserIds = [];
     responses.forEach((response: AxiosResponse) => {
       try {
-        console.log(response.data);
+        // console.log(response.data);
         const did = response.data[0].id;
         candidates[idxIdMap[response.data[0].alsoKnownAs[0]]].did = did;
         idxIdMap[did] = idxIdMap[response.data[0].alsoKnownAs[0]];
       } catch (err) {
         Logger.error(`Error in mapping did of user`);
+        this.failedDIDs.push(response.data[0].alsoKnownAs[0]);
       }
     });
 
     return candidates;
+
+    // const res = [];
+
+    // for (let i = 0; i < candidates.length; i++) {
+    //   const candidate = candidates[i];
+    //   console.log('candidate ', candidate);
+    //   try {
+    //     const didResp: AxiosResponse = await this.httpService.axiosRef.post(
+    //       `${process.env.IDENTITY_BASE_URL}/did/generate`,
+    //       {
+    //         content: [
+    //           {
+    //             alsoKnownAs: [candidate.email, candidate.name, candidate.id],
+    //             services: [
+    //               {
+    //                 id: 'C4GT',
+    //                 type: 'ProposalAcknowledgement2023',
+    //                 serviceEndpoint: {
+    //                   '@context': 'schema.identity.foundation/hub',
+    //                   '@type': 'C4GTEndpoint',
+    //                   instance: ['https://www.codeforgovtech.in/'],
+    //                 },
+    //               },
+    //             ],
+    //             method: 'C4GT',
+    //           },
+    //         ],
+    //       },
+    //     );
+
+    //     const didData = didResp.data;
+    //     const did = didData.data[0].id;
+    //     candidate.did = did;
+    //     res.push({ ...candidate, did: did });
+    //     // candidates[i].did = did;
+    //     idxIdMap[did] = idxIdMap[didData.data[0].alsoKnownAs[0]];
+    //   } catch (err) {
+    //     Logger.error('Error in generating DID for user: ', candidate.email);
+    //     this.failedDIDs.push(candidate.email);
+    //   }
+    // }
+
+    // return res;
   }
 
   async generateCredential(
@@ -161,6 +218,7 @@ export class RcwService {
   ) {
     const responses = await Promise.all(
       candidates.map((candidate: CandidateJSON, idx: number) => {
+        // console.log('candidateDID: ', candidate.did);
         return this.httpService.axiosRef.post(
           `${process.env.CREDENTIAL_BASE_URL}/credentials/issue`,
           {
@@ -176,7 +234,7 @@ export class RcwService {
                 'Acknowledgement',
                 'C4GT23',
               ],
-              issuer: process.env.C4GT_DID,
+              issuer: 'did:C4GT:8a88baed-3d5b-448d-8dbf-6c184e59c7b7', //process.env.C4GT_DID,
               issuanceDate: new Date().toISOString(),
               expirationDate: new Date('2123-01-01T00:00:00Z').toISOString(),
               credentialSubject: {
@@ -273,7 +331,8 @@ export class RcwService {
     });
   }
 
-  async generatePDFs(candidates: CandidateJSON[]) {
+
+  async generatePDFs2(candidates: CandidateJSON[]) {
     const failedPDFCreations = [];
     const failedUploads = [];
     const failedEmails = [];
@@ -321,8 +380,8 @@ export class RcwService {
         console.log(minioURL);
         await this.mailingService.sendEmail(
           candidate.email,
-          'Thanks for applying to C4GT 2023!',
-          emailText,
+          'Thank you for applying to C4GT 2023!',
+          fs.readFileSync('./templates/email.html', 'utf8'),
           {
             // data: data,
             path: `http://${process.env.MINIO_ENDPOINT}:${process.env.MINIO_PORT}/${process.env.MINIO_BUCKETNAME}/${fileName}`,
@@ -335,6 +394,102 @@ export class RcwService {
         failedEmails.push(candidate);
         // throw new InternalServerErrorException('Error sending email');
       }
+    }
+  }
+
+  // async sendFinalEmails(candidates: CandidateJSON[]) {
+  //   // sending emails
+  //   for (let i = 0; i < candidates.length; i++) {
+  //     const candidate = candidates[i];
+  //     const { minioURL, filePath, fileName } =
+  //       fileCandidateMapping[candidate.id];
+  //     try {
+  //       console.log(minioURL);
+  //       await this.mailingService.sendEmail(
+  //         candidate.email,
+  //         'Thank you for applying to C4GT 2023!',
+  //         fs.readFileSync('./templates/email.html', 'utf8'),
+  //         {
+  //           // data: data,
+  //           path: `http://${process.env.MINIO_ENDPOINT}:${process.env.MINIO_PORT}/${process.env.MINIO_BUCKETNAME}/${fileName}`,
+  //           filename: `${fileName}`,
+  //         },
+  //       );
+  //     } catch (err) {
+  //       console.log('err: ', err);
+  //       Logger.error(`Error in sending email for ${candidate.name} ${err}`);
+  //       failedEmails.push(candidate);
+  //       // throw new InternalServerErrorException('Error sending email');
+  //     }
+  //   }
+  //   return;
+  // }
+
+  async generatePDFs(candidates: CandidateJSON[]) {
+    const failedPDFCreations = [];
+    const failedUploads = [];
+    const failedEmails = [];
+    const fileCandidateMapping = [];
+
+    for (let i = 0; i < candidates.length; i++) {
+      const candidate = candidates[i];
+      const fileName = `${candidate.id}_${candidate.name}.pdf`;
+      const filePath = `./pdfs/${fileName}`;
+      // GENERATE QR
+      const qr = await this.renderAsQR(candidates[i].credential);
+      console.time('pdfCreation');
+      try {
+        await createPDF({ name: candidate.name, qr: qr }, filePath);
+        // const template = Handlebars.compile(
+        //   fs.readFileSync('./templates/final.html', 'utf8'),
+        // );
+        // const data = template({ name: candidate.name, qr: qr });
+        // await this.genPdfFromWKHTML(data, filePath);
+      } catch (er) {
+        console.log('eror in pdf generation: ', er);
+        failedPDFCreations.push(candidate);
+        continue;
+      }
+      console.timeEnd('pdfCreation');
+      const minioURL = `http://${process.env.MINIO_ENDPOINT}:${process.env.MINIO_PORT}/${process.env.MINIO_BUCKETNAME}/${fileName}`;
+
+      console.time('uploadToMinio');
+      try {
+        await this.uploadToMinio(`${fileName}`, `${filePath}`);
+        fileCandidateMapping[candidate.id] = { minioURL, filePath, fileName };
+      } catch (err) {
+        console.error('error uploading to minio: ', err);
+        failedUploads.push(candidate);
+        // throw new InternalServerErrorException('Error uploading to minio');
+      }
+      console.timeEnd('uploadToMinio');
+    }
+
+    // sending emails
+    for (let i = 0; i < candidates.length; i++) {
+      const candidate = candidates[i];
+      const { minioURL, filePath, fileName } =
+        fileCandidateMapping[candidate.id];
+      console.time('sendEmail');
+      try {
+        console.log(minioURL);
+        await this.mailingService.sendEmail(
+          candidate.email,
+          'Thank you for applying to C4GT 2023!',
+          fs.readFileSync('./templates/email.html', 'utf8'),
+          {
+            // data: data,
+            path: `http://${process.env.MINIO_ENDPOINT}:${process.env.MINIO_PORT}/${process.env.MINIO_BUCKETNAME}/${fileName}`,
+            filename: `${fileName}`,
+          },
+        );
+      } catch (err) {
+        console.log('err: ', err);
+        Logger.error(`Error in sending email for ${candidate.name} ${err}`);
+        failedEmails.push(candidate);
+        // throw new InternalServerErrorException('Error sending email');
+      }
+      console.timeEnd('sendEmail');
     }
   }
 

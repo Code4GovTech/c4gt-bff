@@ -31,7 +31,7 @@ export async function createPDF(data, pdfPath) {
     headless: 'new',
     defaultViewport: {
       width: 1024,
-      height: 760,
+      height: 768,
     },
   });
 

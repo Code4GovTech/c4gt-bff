@@ -9,20 +9,24 @@
     />
 
     <style>
+      * {
+        -webkit-appearance: none;
+      }
+
       body {
         margin: 0;
         padding: 0;
-        font-family: "Ysabeau Office", sans-serif;
+        font-family: 'Ysabeau Office', sans-serif;
       }
 
       .certificate-container {
         position: relative;
         color: rgb(4, 19, 54);
         height: 100vh;
-        background-image: url("http://139.59.20.91:9000/c4gt/border2.png");
+        background-image: url('http://139.59.20.91:9000/c4gt/background_border.png');
         background-repeat: no-repeat;
         background-size: 850px 550px;
-        background-position: center;        
+        background-position: center;
         display: flex;
         flex-direction: column;
         justify-content: space-between;
@@ -34,9 +38,11 @@
         left: 50%;
         transform: translate(-50%, -50%);
         text-align: center;
-        height: 510px;
-        width: 820px;
-        font-family: "Ysabeau Office", sans-serif;
+        /* height: 510px; */
+        /* width: 820px; */
+        height: 480px;
+        width: 795px;
+        font-family: 'Ysabeau Office', sans-serif;
         display: flex;
         flex-direction: column;
       }
@@ -48,7 +54,7 @@
       }
 
       .main-text {
-        margin-left: 175px;
+        margin-left: 25px;
       }
 
       .main-heading,
@@ -83,10 +89,10 @@
       }
 
       .certificate-images {
-        margin-top: 50px;
+        margin-top: 75px;
         display: flex;
-        align-items: flex-end;
-        justify-content: space-between;
+        align-items: center;
+        justify-content: center;
         width: 100%;
       }
 
@@ -101,17 +107,19 @@
         line-height: 120px;
         width: 120px;
         height: 120px;
+        margin-left: 20px;
       }
 
       .footer-images {
         bottom: 0;
         right: 0;
         display: flex;
+        -webkit-appearance: none;
         border-radius: 15px;
         -webkit-box-shadow: -2px -4px 3px 0px rgba(0, 0, 0, 0.25);
         -moz-box-shadow: -2px -4px 3px 0px rgba(0, 0, 0, 0.25);
         box-shadow: -2px -4px 3px 0px rgba(0, 0, 0, 0.25);
-        margin-bottom: -8px;        
+        margin-bottom: -8px;
       }
 
       .footer-images p {
@@ -122,12 +130,12 @@
         position: relative;
         background-color: rgb(4, 19, 54);
         color: white;
-        font-family: "Ysabeau Office", sans-serif;
+        font-family: 'Ysabeau Office', sans-serif;
         text-align: center;
         padding: 10px 0px;
-        width: 841px;
+        width: 803px;
         margin: auto;
-        margin-left: 27px;
+        /* margin-left: 27px; */
       }
     </style>
   </head>
@@ -135,6 +143,7 @@
     <div class="certificate-container">
       <div class="certificate-content">
         <div class="heading">
+          <img class="qr-img" src="{{qr}}" alt="QR Code" />
           <div class="main-text">
             <h1 class="main-heading" style="font-weight: 700">
               CERTIFICATE OF PARTICIPATION
@@ -163,37 +172,41 @@
             Code For GovTech Mentoring Program 2023.
           </p>
         </div>
-        <div class="certificate-images">
-          <img class="qr-img" src="{{qr}}" alt="QR Code" />
+        <section class="certificate-images">
           <div class="footer-images" style="background-color: white">
             <div>
-              <p>Knowledge Partners</p>
+              <p style="margin-bottom: 0px">Knowledge Partners</p>
               <div>
-                <img src="http://139.59.20.91:9000/c4gt/DPGA.svg" alt="DPGA" />
                 <img
-                  src="http://139.59.20.91:9000/c4gt/omidyar-network-india-logo.png"
+                  src="http://139.59.20.91:9000/c4gt/DPGA.svg"
+                  alt="DPGA"
+                  style="margin-bottom: 40px"
+                />
+                <img
+                  src="http://139.59.20.91:9000/c4gt/omn.png"
                   alt="OMI"
-                  style="margin-left: -10px; height: 50px;"
+                  style="margin-left: -10px; height: 50px; margin-bottom: 40px"
                 />
               </div>
             </div>
-            <div id="communityPartner">
-              <p>Community Partner</p>
+            <div>
+              <p style="margin-bottom: 0px">Community Partner</p>
               <img
                 src="http://139.59.20.91:9000/c4gt/GitHub.png"
                 alt="Github"
-                style="margin-top: 4px"
+                style="height: 40px; margin-top: 5px"
               />
             </div>
             <div>
-              <p>Organizer</p>
+              <p style="margin-bottom: 0px">Organizer</p>
               <img
-                src="http://139.59.20.91:9000/c4gt/Samagrax.png"
+                src="http://139.59.20.91:9000/c4gt/SamagraX.png"
                 alt="SamagraX"
+                style="height: 40px"
               />
             </div>
           </div>
-        </div>
+        </section>
       </div>
       <div class="bottom-text">Issued by the C4GT Organising Team</div>
     </div>

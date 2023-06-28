@@ -6,6 +6,9 @@ import { ConfigModule } from '@nestjs/config';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { MailingModule } from './mailing/mailing.module';
 import { MinioModule } from './minio/minio.module';
+import { InaugurationService } from './inauguration/inauguration.service';
+import { InaugurationModule } from './inauguration/inauguration.module';
+import { HttpModule } from '@nestjs/axios';
 
 @Module({
   imports: [
@@ -35,8 +38,10 @@ import { MinioModule } from './minio/minio.module';
     }),
     MailingModule,
     MinioModule,
+    InaugurationModule,
+    HttpModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, InaugurationService],
 })
 export class AppModule {}

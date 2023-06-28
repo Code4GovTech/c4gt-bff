@@ -8,5 +8,6 @@ import { MailingModule } from 'src/mailing/mailing.module';
   imports: [HttpModule, MailingModule],
   providers: [RcwService],
   controllers: [RcwController],
+  exports: [RcwService],
 })
 export class RcwModule {}

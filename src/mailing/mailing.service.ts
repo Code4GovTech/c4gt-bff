@@ -55,7 +55,7 @@ export class MailingService {
         .sendMail({
           transporterName: 'gmail',
           to,
-          from: process.env.EMAIL_ID,
+          from: `Code For GovTech <${process.env.EMAIL_ID}>`,
           subject,
           html,
           attachments: [
