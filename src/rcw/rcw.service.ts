@@ -76,6 +76,14 @@ export class RcwService {
         candidatesWithCredentials = await this.generateCredential(
           candidatesWithDIDs,
           idxIdMap,
+          process.env.ACK_CRED_SCHEMA_ID,
+          [
+            'VerifiableCredential',
+            'Acknowledgement',
+            'C4GT23',
+            'ProofOfSubmission',
+          ],
+          ['Acknowledgement', 'ProofOfSubmission', 'C4GT23'],
         );
       } catch (err) {
         console.log('err: ', err);
@@ -162,6 +170,7 @@ export class RcwService {
         idxIdMap[did] = idxIdMap[response.data[0].alsoKnownAs[0]];
       } catch (err) {
         Logger.error(`Error in mapping did of user`);
+        console.log('error: ', err);
         this.failedDIDs.push(response.data[0].alsoKnownAs[0]);
       }
     });
@@ -215,6 +224,9 @@ export class RcwService {
   async generateCredential(
     candidates: CandidateJSON[],
     idxIdMap: { [k: string]: number },
+    credSchemaId: string = process.env.ACK_SCHEMA_ID,
+    type: string[] = ['VerifiableCredential', 'Acknowledgement', 'C4GT23'],
+    tags: string[] = ['C4GT23'],
   ) {
     const responses = await Promise.all(
       candidates.map((candidate: CandidateJSON, idx: number) => {
@@ -228,12 +240,7 @@ export class RcwService {
                 'https://www.w3.org/2018/credentials/examples/v1',
               ],
               id: 'C4GT',
-              type: [
-                'VerifiableCredential',
-                'ProofOfSubmission',
-                'Acknowledgement',
-                'C4GT23',
-              ],
+              type,
               issuer: 'did:C4GT:8a88baed-3d5b-448d-8dbf-6c184e59c7b7', //process.env.C4GT_DID,
               issuanceDate: new Date().toISOString(),
               expirationDate: new Date('2123-01-01T00:00:00Z').toISOString(),
@@ -249,8 +256,8 @@ export class RcwService {
                 },
               },
             },
-            credentialSchemaId: process.env.ACK_SCHEMA_ID,
-            tags: ['Acknowledgement', 'ProofOfSubmission', 'C4GT23'],
+            credentialSchemaId: credSchemaId,
+            tags,
           },
         );
       }),
@@ -330,7 +337,6 @@ export class RcwService {
       );
     });
   }
-
 
   async generatePDFs2(candidates: CandidateJSON[]) {
     const failedPDFCreations = [];
