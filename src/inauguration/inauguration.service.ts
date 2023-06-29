@@ -100,6 +100,14 @@ export class InaugurationService {
   }
 
   async genCert(candidate: any) {
+    const decoded = jwt.verify(candidate.token, process.env.SECRET);
+    const data = JSON.parse(
+      fs.readFileSync(`inaug/${(decoded as any).ts}.json`, 'utf-8'),
+    );
+    if (data.done.length !== data.length) {
+      return null;
+    }
+
     const type = [
       'VerifiableCredential',
       'Acknowledgement',
