@@ -19,7 +19,7 @@ export class RcwController {
     @Res() res: Response,
   ) {
     // console.log('in verify');
-    const resp = await this.rcwService.verifyCredential(id);
+    const resp = await this.rcwService.verifyCredential(id, 'verified.html');
     // console.log('res: ', resp);
     res.send(resp);
     // return await this.rcwService.verifyCredential(id);

@@ -241,7 +241,7 @@ export class RcwService {
               ],
               id: 'C4GT',
               type,
-              issuer: process.env.C4GT_DID, //'did:C4GT:8a88baed-3d5b-448d-8dbf-6c184e59c7b7', 
+              issuer: process.env.C4GT_DID, //'did:C4GT:8a88baed-3d5b-448d-8dbf-6c184e59c7b7',
               issuanceDate: new Date().toISOString(),
               expirationDate: new Date('2123-01-01T00:00:00Z').toISOString(),
               credentialSubject: {
@@ -499,7 +499,10 @@ export class RcwService {
     }
   }
 
-  public async verifyCredential(credentialDID: string) {
+  public async verifyCredential(
+    credentialDID: string,
+    verifiedTemplaeFile: string,
+  ) {
     // verify on the server
     try {
       const resp: AxiosResponse = await this.httpService.axiosRef.get(
@@ -521,7 +524,7 @@ export class RcwService {
             name: data.credentialSubject.name,
             qr: qr,
           },
-          'verified.html',
+          verifiedTemplaeFile,
         );
         return html;
         // return {

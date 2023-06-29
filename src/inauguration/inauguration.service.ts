@@ -3,6 +3,10 @@ import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import * as jwt from 'jsonwebtoken';
 import { RcwService } from 'src/rcw/rcw.service';
 import * as fs from 'fs';
+import { AxiosResponse } from 'axios';
+import { compileTemplate } from 'src/rcw/genpdf';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const QRCode = require('qrcode');
 
 @Injectable()
 export class InaugurationService {
@@ -87,5 +91,96 @@ export class InaugurationService {
     const ts = (decoded as any).ts;
     const data = JSON.parse(fs.readFileSync(`inaug/${ts}.json`, 'utf-8'));
     return { done: data.done, length: data.length };
+  }
+
+  async verifyCredential(did: string) {
+    return await this.rcwService.verifyCredential(did, 'inaug_verified.html');
+  }
+
+  async genCert(candidate: any) {
+    const type = [
+      'VerifiableCredential',
+      'Acknowledgement',
+      'C4GT23',
+      'ProofOfSubmission',
+    ];
+    const tags = ['Acknowledgement', 'ProofOfSubmission', 'C4GT23'];
+    let resp: AxiosResponse;
+    try {
+      const didResp: AxiosResponse = await this.httpService.axiosRef.post(
+        `${process.env.IDENTITY_BASE_URL}/did/generate`,
+        {
+          content: [
+            {
+              alsoKnownAs: ['LaunchApprovers'],
+              services: [
+                {
+                  id: 'C4GT',
+                  type: 'ProposalAcknowledgement2023',
+                  serviceEndpoint: {
+                    '@context': 'schema.identity.foundation/hub',
+                    '@type': 'C4GTEndpoint',
+                    instance: ['https://www.codeforgovtech.in/'],
+                  },
+                },
+              ],
+              method: 'C4GT',
+            },
+          ],
+        },
+      );
+      const did = didResp.data[0].id;
+      console.log('didResp.data: ', didResp.data[0].id);
+      resp = await this.httpService.axiosRef.post(
+        `${process.env.CREDENTIAL_BASE_URL}/credentials/issue`,
+        {
+          credential: {
+            '@context': [
+              'https://www.w3.org/2018/credentials/v1',
+              'https://www.w3.org/2018/credentials/examples/v1',
+            ],
+            id: 'C4GT',
+            type,
+            issuer: process.env.C4GT_DID, //'did:C4GT:8a88baed-3d5b-448d-8dbf-6c184e59c7b7',
+            issuanceDate: new Date().toISOString(),
+            expirationDate: new Date('2123-01-01T00:00:00Z').toISOString(),
+            credentialSubject: {
+              id: did,
+              name: candidate.name,
+              email: candidate.email,
+            },
+            options: {
+              created: '2020-04-02T18:48:36Z',
+              credentialStatus: {
+                type: 'RevocationList2020Status',
+              },
+            },
+          },
+          credentialSchemaId: process.env.INAUGURATION_CRED_SCHEMA_ID,
+          tags,
+        },
+      );
+    } catch (err) {
+      console.log('err: ', err);
+      throw new InternalServerErrorException('Error generating credential');
+    }
+
+    const cred = resp.data;
+
+    try {
+      const verificationURL = `${process.env.FRONTEND_BASE_URL}/inauguration/verify/${cred.credential.id}`;
+      const QRData = await QRCode.toDataURL(verificationURL);
+      const html = compileTemplate(
+        {
+          name: cred.credential.credentialSubject.name,
+          qr: QRData,
+        },
+        'inaug.html',
+      );
+      return html;
+    } catch (err) {
+      console.log('err: ', err);
+      throw new InternalServerErrorException('Error generating QR');
+    }
   }
 }
