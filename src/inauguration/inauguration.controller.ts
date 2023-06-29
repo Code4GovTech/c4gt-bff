@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Req, Res } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Put, Req, Res } from '@nestjs/common';
 import { InaugurationService } from './inauguration.service';
 import { Request, Response } from 'express';
 
@@ -41,5 +41,10 @@ export class InaugurationController {
   @Get('/view/:did')
   async viewCert(@Param('did') did: string) {
     return await this.inaugurationService.viewCert(did);
+  }
+
+  @Get('/reset/:token')
+  resetDone(@Param('token') token: string) {
+    return this.inaugurationService.resetDone(token);
   }
 }

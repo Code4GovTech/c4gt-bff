@@ -214,4 +214,19 @@ export class InaugurationService {
       throw new InternalServerErrorException('Error generating QR');
     }
   }
+
+  resetDone(token: string) {
+    const decoded = jwt.verify(token, process.env.SECRET);
+    if (!decoded) {
+      throw new InternalServerErrorException('Invalid token');
+    }
+    const ts = (decoded as any).ts;
+    const data = JSON.parse(fs.readFileSync(`inaug/${ts}.json`, 'utf-8'));
+    data.done = [];
+    fs.writeFileSync(
+      `./inaug/${(decoded as any).ts}.json`,
+      JSON.stringify(data, null, 2),
+    );
+    return { done: data.done, length: data.length };
+  }
 }
