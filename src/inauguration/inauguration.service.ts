@@ -164,23 +164,23 @@ export class InaugurationService {
       console.log('err: ', err);
       throw new InternalServerErrorException('Error generating credential');
     }
-
     const cred = resp.data;
-
-    try {
-      const verificationURL = `${process.env.FRONTEND_BASE_URL}/inauguration/verify/${cred.credential.id}`;
-      const QRData = await QRCode.toDataURL(verificationURL);
-      const html = compileTemplate(
-        {
-          name: cred.credential.credentialSubject.name,
-          qr: QRData,
-        },
-        'inaug.html',
-      );
-      return html;
-    } catch (err) {
-      console.log('err: ', err);
-      throw new InternalServerErrorException('Error generating QR');
-    }
+    const verificationURL = `${process.env.FRONTEND_BASE_URL}/inauguration/verify/${cred.credential.id}`;
+    return verificationURL;
+    // try {
+    //   const verificationURL = `${process.env.FRONTEND_BASE_URL}/inauguration/verify/${cred.credential.id}`;
+    //   const QRData = await QRCode.toDataURL(verificationURL);
+    //   const html = compileTemplate(
+    //     {
+    //       name: cred.credential.credentialSubject.name,
+    //       qr: QRData,
+    //     },
+    //     'inaug.html',
+    //   );
+    //   return html;
+    // } catch (err) {
+    //   console.log('err: ', err);
+    //   throw new InternalServerErrorException('Error generating QR');
+    // }
   }
 }
