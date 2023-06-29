@@ -20,7 +20,9 @@ export class InaugurationService {
     const ts = Date.now();
     people.forEach((person, idx: number) => {
       person.ts = ts;
-      person.token = jwt.sign({ ...person, ts }, process.env.SECRET);
+      person.token = jwt.sign({ ...person, ts }, process.env.SECRET, {
+        expiresIn: '24h',
+      });
       idxIdMap[person.email] = idx;
     });
 
