@@ -165,7 +165,7 @@ export class InaugurationService {
       throw new InternalServerErrorException('Error generating credential');
     }
     const cred = resp.data;
-    const verificationURL = `${process.env.FRONTEND_BASE_URL}/inauguration/verify/${cred.credential.id}`;
+    const verificationURL = `${process.env.FRONTEND_BASE_URL}/inauguration/view/${cred.credential.id}`;
     return verificationURL;
     // try {
     //   const verificationURL = `${process.env.FRONTEND_BASE_URL}/inauguration/verify/${cred.credential.id}`;
@@ -182,5 +182,34 @@ export class InaugurationService {
     //   console.log('err: ', err);
     //   throw new InternalServerErrorException('Error generating QR');
     // }
+  }
+
+  async viewCert(id: string) {
+    let cred: any;
+    try {
+      const resp: AxiosResponse = await this.httpService.axiosRef.get(
+        `${process.env.CREDENTIAL_BASE_URL}/credentials/${id}`,
+      );
+      cred = resp.data;
+    } catch (err) {
+      console.log('err: ', err);
+      throw new InternalServerErrorException('Error fetching credential');
+    }
+
+    try {
+      const verificationURL = `${process.env.FRONTEND_BASE_URL}/inauguration/verify/${cred.id}`;
+      const QRData = await QRCode.toDataURL(verificationURL);
+      const html = compileTemplate(
+        {
+          name: cred.credentialSubject.name,
+          qr: QRData,
+        },
+        'inaug.html',
+      );
+      return html;
+    } catch (err) {
+      console.log('err: ', err);
+      throw new InternalServerErrorException('Error generating QR');
+    }
   }
 }

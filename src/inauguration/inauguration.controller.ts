@@ -37,4 +37,9 @@ export class InaugurationController {
     const html = await this.inaugurationService.genCert(body);
     res.send(html);
   }
+
+  @Get('/view/:did')
+  async viewCert(@Param('did') did: string) {
+    return await this.inaugurationService.viewCert(did);
+  }
 }
