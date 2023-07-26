@@ -51,7 +51,7 @@ export class InaugurationService {
       objToWrite.creds[cred.email] = cred;
     });
 
-    fs.writeFileSync(`inaug/${ts}.json`, JSON.stringify(objToWrite, null, 2));
+    fs.writeFileSync(`./inaug/${ts}.json`, JSON.stringify(objToWrite, null, 2));
     return creds;
   }
 
@@ -63,7 +63,7 @@ export class InaugurationService {
 
     // update the done thing
     const data = JSON.parse(
-      fs.readFileSync(`inaug/${(decoded as any).ts}.json`, 'utf-8'),
+      fs.readFileSync(`./inaug/${(decoded as any).ts}.json`, 'utf-8'),
     );
 
     const done = data.done;
@@ -82,7 +82,7 @@ export class InaugurationService {
       JSON.stringify(data, null, 2),
     );
 
-    return data.creds[(decoded as any).email];
+    return { isPresent, cred: data.creds[(decoded as any).email] };
   }
 
   getProgress(token: string) {
@@ -91,7 +91,7 @@ export class InaugurationService {
       throw new InternalServerErrorException('Invalid token');
     }
     const ts = (decoded as any).ts;
-    const data = JSON.parse(fs.readFileSync(`inaug/${ts}.json`, 'utf-8'));
+    const data = JSON.parse(fs.readFileSync(`./inaug/${ts}.json`, 'utf-8'));
     return { done: data.done, length: data.length };
   }
 
@@ -102,7 +102,7 @@ export class InaugurationService {
   async genCert(candidate: any) {
     const decoded = jwt.verify(candidate.token, process.env.SECRET);
     const data = JSON.parse(
-      fs.readFileSync(`inaug/${(decoded as any).ts}.json`, 'utf-8'),
+      fs.readFileSync(`./inaug/${(decoded as any).ts}.json`, 'utf-8'),
     );
     if (data.done.length !== data.length) {
       return null;
@@ -229,7 +229,7 @@ export class InaugurationService {
       throw new InternalServerErrorException('Invalid token');
     }
     const ts = (decoded as any).ts;
-    const data = JSON.parse(fs.readFileSync(`inaug/${ts}.json`, 'utf-8'));
+    const data = JSON.parse(fs.readFileSync(`./inaug/${ts}.json`, 'utf-8'));
     data.done = [];
     fs.writeFileSync(
       `./inaug/${(decoded as any).ts}.json`,
