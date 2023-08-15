@@ -12,8 +12,17 @@ import { MailerService } from '@nestjs-modules/mailer';
 import { MailingService } from 'src/mailing/mailing.service';
 import { Client } from 'minio';
 import * as fs from 'fs';
-import { compileTemplate, createPDF } from './genpdf';
-import { CreateCredSchemaDTO } from './dto/requst.dto';
+import {
+  compileHBS,
+  compileTemplate,
+  createPDF,
+  createPDFFromTemplate,
+} from './genpdf';
+import {
+  CreateCredDTO,
+  CreateCredSchemaDTO,
+  CreateTemplateDTO,
+} from './dto/requst.dto';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const QRCode = require('qrcode');
 
@@ -28,6 +37,7 @@ export class RcwService {
   private failedPDFs = [];
   private failedEmails = [];
   private failedMinioUploads = [];
+  private logger: Logger = new Logger('RCWService');
 
   constructor(
     private readonly httpService: HttpService,
@@ -424,14 +434,35 @@ export class RcwService {
         );
         const data = credResp.data;
 
+        const schemaResp = await this.httpService.axiosRef.get(
+          `${process.env.CREDENTIAL_BASE_URL}/credentials/schema/${data.id}`,
+        );
+
+        const schemaId = schemaResp.data.credential_schema;
+
+        // fetch template via schemaId
+
+        const templates = await this.getTemplatesBySchemaId(schemaId);
+
+        let template;
+        for (let i = 0; i < templates.length; i++) {
+          const temp = templates[i];
+          if (temp.type.trim() === 'verified') {
+            template = temp.template;
+            break;
+          }
+        }
+
+        console.log('template: ', template);
+
         console.log('data: ', data);
         const qr = await this.renderAsQR(data.id);
-        const html = compileTemplate(
+        const html = compileHBS(
           {
-            name: data.credentialSubject.name,
+            ...data.credentialSubject,
             qr: qr,
           },
-          verifiedTemplaeFile,
+          template ?? verifiedTemplaeFile,
         );
         return html;
         // return {
@@ -536,12 +567,9 @@ export class RcwService {
     return createdSchemaResp.data;
   }
 
-  async generateNewCredential(
-    type: string,
-    subject: any,
-    schema: string,
-    tags?: string[],
-  ) {
+  async generateNewCredential(createCredDTO: CreateCredDTO) {
+    const { type, subject, schema, tags, templateId } = createCredDTO;
+    // GENERATE CREDENTIAL
     const createCredentialResp: AxiosResponse =
       await this.httpService.axiosRef.post(
         `${process.env.CREDENTIAL_BASE_URL}/credentials/issue`,
@@ -572,6 +600,82 @@ export class RcwService {
       );
 
     const credential = createCredentialResp.data.credential;
-    return `${process.env.FRONTEND_BASE_URL}/rcw/verify/${credential?.id}`;
+
+    const verificationURL = `${process.env.FRONTEND_BASE_URL}/rcw/verify/${credential?.id}`;
+    // fetch the template using template ID given in DTO
+
+    if (!templateId) {
+      this.logger.warn('TemplateId not given hence skipping PDF creation.');
+      return { verificationURL };
+    }
+    let template;
+    try {
+      const templateResp = await this.getTemplateByTemplateId(templateId);
+      template = templateResp.template;
+    } catch (err) {
+      this.logger.error('Error fetching template: ', err);
+      throw new InternalServerErrorException('Error fetching template');
+    }
+
+    // RENDER PDF AND UPLOAD TO MINIO
+    if (!template) {
+      this.logger.warn('Template not found hence skipping PDF creation.');
+      return { verificationURL };
+    }
+    const fileName = `${credential.credentialSubject.username}_${credential.credentialSubject.badge}.pdf`;
+    const filePath = `./pdfs/${fileName}`;
+    try {
+      const qr = await this.renderAsQR(credential);
+      const pdfData = await createPDFFromTemplate(
+        {
+          ...credential.credentialSubject,
+          qr,
+        },
+        template,
+        filePath,
+      );
+    } catch (err) {
+      this.logger.error('Error generating PDF: ', err);
+      throw new InternalServerErrorException('Error generating PDF');
+    }
+
+    // UPLOAD PDF to MINIO
+
+    try {
+      await this.uploadToMinio(`${fileName}`, `${filePath}`);
+    } catch (err) {
+      this.logger.error('Error uploading file to minio: ', err);
+      throw new InternalServerErrorException('Error uploading file to minio');
+    }
+    const minioURL = `http://${process.env.MINIO_ENDPOINT}:${process.env.MINIO_PORT}/${process.env.MINIO_BUCKETNAME}/${fileName}`;
+
+    return { verificationURL, minioURL };
+  }
+
+  async createNewTemplate(createTemplateDto: CreateTemplateDTO) {
+    const temp = await this.httpService.axiosRef.post(
+      `${process.env.SCHEMA_BASE_URL}/rendering-template`,
+      {
+        ...createTemplateDto,
+      },
+    );
+
+    return temp.data;
+  }
+
+  async getTemplatesBySchemaId(schemaId: string) {
+    const res = await this.httpService.axiosRef.get(
+      `${process.env.SCHEMA_BASE_URL}/rendering-template?schemaId=${schemaId}`,
+    );
+
+    return res.data;
+  }
+
+  async getTemplateByTemplateId(templateId: string) {
+    const res = await this.httpService.axiosRef.get(
+      `${process.env.SCHEMA_BASE_URL}/rendering-template/${templateId}`,
+    );
+
+    return res.data;
   }
 }

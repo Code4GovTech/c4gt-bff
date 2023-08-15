@@ -17,4 +17,11 @@ export class CreateCredDTO {
   subject: object;
   schema: string;
   tags?: string[];
+  templateId?: string;
+}
+
+export class CreateTemplateDTO {
+  template: string;
+  schema: string;
+  type: string;
 }

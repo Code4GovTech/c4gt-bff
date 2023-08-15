@@ -1,3 +1,4 @@
-id,name,email,product,project,organization,did,credentialDID
-1,yash,yash.wfc2022@samagragovernance.in,cQube,cQube chat,Samagra
-2,john,yami8b@gmail.com,Beckn, Synapse, BecknFoundation
+id,name,email
+1,yash,yash.wfc2022@samagragovernance.in
+2,John Doe,yami8b@gmail.com
+3,shruti,shruti@samagragovernance.in
