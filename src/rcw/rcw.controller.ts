@@ -1,7 +1,8 @@
-import { Controller, Get, Param, Req, Res } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Req, Res } from '@nestjs/common';
 import { RcwService } from './rcw.service';
 import { async } from 'rxjs';
 import { Request, Response } from 'express';
+import { CreateCredDTO, CreateTemplateDTO } from './dto/requst.dto';
 
 @Controller('rcw')
 export class RcwController {
@@ -29,4 +30,29 @@ export class RcwController {
   // async generateDIDs() {
   //   return this.rcwService.generateDIDs();
   // }
+
+  @Post('/schema')
+  async createNewSchema(@Body() schema: any) {
+    return this.rcwService.createNewSchema(schema);
+  }
+
+  @Post('/credential')
+  async createNewCredential(@Body() credential: CreateCredDTO) {
+    return this.rcwService.generateNewCredential(credential);
+  }
+
+  @Post('/templates')
+  async createNewTemplate(@Body() createTemplateDto: CreateTemplateDTO) {
+    return this.rcwService.createNewTemplate(createTemplateDto);
+  }
+
+  @Get('/templates/schema/:id')
+  async getTemplates(@Param('id') id: string) {
+    return this.rcwService.getTemplatesBySchemaId(id);
+  }
+
+  @Get('/templates/:id')
+  async getTemplateByTemplateId(@Param('id') templateId: string) {
+    return this.rcwService.getTemplateByTemplateId(templateId);
+  }
 }

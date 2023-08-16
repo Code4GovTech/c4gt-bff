@@ -9,6 +9,10 @@
     />
 
     <style>
+      * {
+        -webkit-appearance: none;
+      }
+
       body {
         margin: 0;
         padding: 0;
@@ -107,6 +111,7 @@
         bottom: 0;
         right: 0;
         display: flex;
+        -webkit-appearance: none;
         border-radius: 15px;
         -webkit-box-shadow: -2px -4px 3px 0px rgba(0, 0, 0, 0.25);
         -moz-box-shadow: -2px -4px 3px 0px rgba(0, 0, 0, 0.25);
@@ -164,16 +169,16 @@
           </p>
         </div>
         <div class="certificate-images">
-          <img class="qr-img" src="data:image/png;base64,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&#x3D;" alt="QR Code" />
+          <img class="qr-img" src="data:image/png;base64,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" alt="QR Code" />
           <div class="footer-images" style="background-color: white">
             <div>
               <p>Knowledge Partners</p>
               <div>
                 <img src="http://139.59.20.91:9000/c4gt/DPGA.svg" alt="DPGA" />
                 <img
-                  src="http://139.59.20.91:9000/c4gt/OMI.png"
+                  src="http://139.59.20.91:9000/c4gt/omidyar-network-india-logo.png"
                   alt="OMI"
-                  style="margin-bottom: 12px"
+                  style="margin-left: -10px; height: 50px;"
                 />
               </div>
             </div>

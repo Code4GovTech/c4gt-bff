@@ -12,7 +12,17 @@ import { MailerService } from '@nestjs-modules/mailer';
 import { MailingService } from 'src/mailing/mailing.service';
 import { Client } from 'minio';
 import * as fs from 'fs';
-import { compileTemplate, createPDF } from './genpdf';
+import {
+  compileHBS,
+  compileTemplate,
+  createPDF,
+  createPDFFromTemplate,
+} from './genpdf';
+import {
+  CreateCredDTO,
+  CreateCredSchemaDTO,
+  CreateTemplateDTO,
+} from './dto/requst.dto';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const QRCode = require('qrcode');
 
@@ -27,6 +37,7 @@ export class RcwService {
   private failedPDFs = [];
   private failedEmails = [];
   private failedMinioUploads = [];
+  private logger: Logger = new Logger('RCWService');
 
   constructor(
     private readonly httpService: HttpService,
@@ -101,23 +112,23 @@ export class RcwService {
       );
       // await this.generatePDFs(candidatesWithCredentials);
     }
-    // const failedPDFs = this.failedPDFs;
-    // const newFiles = ['sample.csv'];
-    // for (const file of newFiles) {
-    //   const pdfsToGenerate = JSON.parse(
-    //     fs.readFileSync(`./output/${file}.json`, 'utf-8'),
-    //   );
+    const failedPDFs = this.failedPDFs;
+    const newFiles = ['sample.csv'];
+    for (const file of newFiles) {
+      const pdfsToGenerate = JSON.parse(
+        fs.readFileSync(`./output/${file}.json`, 'utf-8'),
+      );
 
-    //   for (let i = 0; i < pdfsToGenerate.length; i++) {
-    //     const candidate = pdfsToGenerate[i];
-    //     try {
-    //       await this.generatePDFs(candidate);
-    //     } catch (err) {
-    //       Logger.error('Error in generating PDF', err);
-    //       this.failedPDFs.push(candidate.id);
-    //     }
-    //   }
-    // }
+      for (let i = 0; i < pdfsToGenerate.length; i++) {
+        const candidate = pdfsToGenerate[i];
+        try {
+          await this.generatePDFs(candidate);
+        } catch (err) {
+          Logger.error('Error in generating PDF', err);
+          this.failedPDFs.push(candidate.id);
+        }
+      }
+    }
 
     fs.writeFileSync(
       `./output/failedPDFs.json`,
@@ -176,49 +187,6 @@ export class RcwService {
     });
 
     return candidates;
-
-    // const res = [];
-
-    // for (let i = 0; i < candidates.length; i++) {
-    //   const candidate = candidates[i];
-    //   console.log('candidate ', candidate);
-    //   try {
-    //     const didResp: AxiosResponse = await this.httpService.axiosRef.post(
-    //       `${process.env.IDENTITY_BASE_URL}/did/generate`,
-    //       {
-    //         content: [
-    //           {
-    //             alsoKnownAs: [candidate.email, candidate.name, candidate.id],
-    //             services: [
-    //               {
-    //                 id: 'C4GT',
-    //                 type: 'ProposalAcknowledgement2023',
-    //                 serviceEndpoint: {
-    //                   '@context': 'schema.identity.foundation/hub',
-    //                   '@type': 'C4GTEndpoint',
-    //                   instance: ['https://www.codeforgovtech.in/'],
-    //                 },
-    //               },
-    //             ],
-    //             method: 'C4GT',
-    //           },
-    //         ],
-    //       },
-    //     );
-
-    //     const didData = didResp.data;
-    //     const did = didData.data[0].id;
-    //     candidate.did = did;
-    //     res.push({ ...candidate, did: did });
-    //     // candidates[i].did = did;
-    //     idxIdMap[did] = idxIdMap[didData.data[0].alsoKnownAs[0]];
-    //   } catch (err) {
-    //     Logger.error('Error in generating DID for user: ', candidate.email);
-    //     this.failedDIDs.push(candidate.email);
-    //   }
-    // }
-
-    // return res;
   }
 
   async generateCredential(
@@ -315,29 +283,6 @@ export class RcwService {
       return err;
     }
   }
-
-  genPdfFromWKHTML(data, filePath) {
-    return new Promise((resolve, reject) => {
-      wkhtmltopdf(
-        data,
-        {
-          orientation: 'landscape',
-          disableExternalLinks: false,
-          disableInternalLinks: false,
-          disableJavascript: false,
-          encoding: 'UTF-8',
-        },
-        (err, stream) => {
-          if (err) reject(err);
-          else {
-            stream.pipe(fs.createWriteStream(filePath));
-            resolve(stream);
-          }
-        },
-      );
-    });
-  }
-
   async generatePDFs2(candidates: CandidateJSON[]) {
     const failedPDFCreations = [];
     const failedUploads = [];
@@ -402,34 +347,6 @@ export class RcwService {
       }
     }
   }
-
-  // async sendFinalEmails(candidates: CandidateJSON[]) {
-  //   // sending emails
-  //   for (let i = 0; i < candidates.length; i++) {
-  //     const candidate = candidates[i];
-  //     const { minioURL, filePath, fileName } =
-  //       fileCandidateMapping[candidate.id];
-  //     try {
-  //       console.log(minioURL);
-  //       await this.mailingService.sendEmail(
-  //         candidate.email,
-  //         'Thank you for applying to C4GT 2023!',
-  //         fs.readFileSync('./templates/email.html', 'utf8'),
-  //         {
-  //           // data: data,
-  //           path: `http://${process.env.MINIO_ENDPOINT}:${process.env.MINIO_PORT}/${process.env.MINIO_BUCKETNAME}/${fileName}`,
-  //           filename: `${fileName}`,
-  //         },
-  //       );
-  //     } catch (err) {
-  //       console.log('err: ', err);
-  //       Logger.error(`Error in sending email for ${candidate.name} ${err}`);
-  //       failedEmails.push(candidate);
-  //       // throw new InternalServerErrorException('Error sending email');
-  //     }
-  //   }
-  //   return;
-  // }
 
   async generatePDFs(candidates: CandidateJSON[]) {
     const failedPDFCreations = [];
@@ -517,14 +434,35 @@ export class RcwService {
         );
         const data = credResp.data;
 
+        const schemaResp = await this.httpService.axiosRef.get(
+          `${process.env.CREDENTIAL_BASE_URL}/credentials/schema/${data.id}`,
+        );
+
+        const schemaId = schemaResp.data.credential_schema;
+
+        // fetch template via schemaId
+
+        const templates = await this.getTemplatesBySchemaId(schemaId);
+
+        let template;
+        for (let i = 0; i < templates.length; i++) {
+          const temp = templates[i];
+          if (temp.type.trim() === 'verified') {
+            template = temp.template;
+            break;
+          }
+        }
+
+        console.log('template: ', template);
+
         console.log('data: ', data);
         const qr = await this.renderAsQR(data.id);
-        const html = compileTemplate(
+        const html = compileHBS(
           {
-            name: data.credentialSubject.name,
+            ...data.credentialSubject,
             qr: qr,
           },
-          verifiedTemplaeFile,
+          template ?? verifiedTemplaeFile,
         );
         return html;
         // return {
@@ -589,4 +527,155 @@ export class RcwService {
 
   //   return response.data;
   // }
+
+  async createNewSchema(schema: CreateCredSchemaDTO) {
+    const createdSchemaResp: AxiosResponse =
+      await this.httpService.axiosRef.post(
+        `${process.env.SCHEMA_BASE_URL}/credential-schema`,
+        {
+          schema: {
+            '@context': [
+              'https://www.w3.org/2018/credentials/v1',
+              'https://www.w3.org/2018/credentials/examples/v1',
+              'https://playground.chapi.io/examples/alumni/alumni-v1.json',
+              'https://w3id.org/security/suites/ed25519-2020/v1',
+            ],
+            type: 'https://w3c-ccg.github.io/vc-json-schemas/',
+            version: '1.0',
+            id: '',
+            name: schema.id,
+            author: process.env.C4GT_DID, // this is harcoded to C4GT DID since this is C4GT BFF
+            authored: new Date().toISOString(),
+            schema: {
+              $id: schema.id,
+              $schema: 'https://json-schema.org/draft/2019-09/schema',
+              description: schema.description,
+              type: 'object',
+              properties: {
+                ...schema.properties,
+              },
+              required: schema.required,
+              additionalProperties: false,
+            },
+            proof: {},
+          },
+          tags: schema.tags,
+          status: 'PUBLISHED',
+        },
+      );
+
+    return createdSchemaResp.data;
+  }
+
+  async generateNewCredential(createCredDTO: CreateCredDTO) {
+    const { type, subject, schema, tags, templateId } = createCredDTO;
+    // GENERATE CREDENTIAL
+    const createCredentialResp: AxiosResponse =
+      await this.httpService.axiosRef.post(
+        `${process.env.CREDENTIAL_BASE_URL}/credentials/issue`,
+        {
+          credential: {
+            '@context': [
+              'https://www.w3.org/2018/credentials/v1',
+              'https://www.w3.org/2018/credentials/examples/v1',
+            ],
+            id: 'C4GT',
+            type,
+            issuer: process.env.C4GT_DID, //'did:C4GT:8a88baed-3d5b-448d-8dbf-6c184e59c7b7',
+            issuanceDate: new Date().toISOString(),
+            expirationDate: new Date('2123-01-01T00:00:00Z').toISOString(),
+            credentialSubject: {
+              ...subject,
+            },
+            options: {
+              created: '2020-04-02T18:48:36Z',
+              credentialStatus: {
+                type: 'RevocationList2020Status',
+              },
+            },
+          },
+          credentialSchemaId: schema,
+          tags: tags ?? [],
+        },
+      );
+
+    const credential = createCredentialResp.data.credential;
+
+    const verificationURL = `${process.env.FRONTEND_BASE_URL}/rcw/verify/${credential?.id}`;
+    // fetch the template using template ID given in DTO
+
+    if (!templateId) {
+      this.logger.warn('TemplateId not given hence skipping PDF creation.');
+      return { verificationURL };
+    }
+    let template;
+    try {
+      const templateResp = await this.getTemplateByTemplateId(templateId);
+      template = templateResp.template;
+    } catch (err) {
+      this.logger.error('Error fetching template: ', err);
+      throw new InternalServerErrorException('Error fetching template');
+    }
+
+    // RENDER PDF AND UPLOAD TO MINIO
+    if (!template) {
+      this.logger.warn('Template not found hence skipping PDF creation.');
+      return { verificationURL };
+    }
+    const fileName = `${credential.credentialSubject.username}_${credential.credentialSubject.badge}.pdf`;
+    const filePath = `./pdfs/${fileName}`;
+    try {
+      const qr = await this.renderAsQR(credential);
+      const pdfData = await createPDFFromTemplate(
+        {
+          ...credential.credentialSubject,
+          qr,
+        },
+        template,
+        filePath,
+      );
+    } catch (err) {
+      this.logger.error('Error generating PDF: ', err);
+      throw new InternalServerErrorException('Error generating PDF');
+    }
+
+    // UPLOAD PDF to MINIO
+
+    try {
+      await this.uploadToMinio(`${fileName}`, `${filePath}`);
+    } catch (err) {
+      this.logger.error('Error uploading file to minio: ', err);
+      throw new InternalServerErrorException('Error uploading file to minio');
+    }
+    const minioURL = `http://${process.env.MINIO_ENDPOINT}:${process.env.MINIO_PORT}/${process.env.MINIO_BUCKETNAME}/${fileName}`;
+
+    return { verificationURL, minioURL };
+  }
+
+  async createNewTemplate(createTemplateDto: CreateTemplateDTO) {
+    const temp = await this.httpService.axiosRef.post(
+      `${process.env.SCHEMA_BASE_URL}/rendering-template`,
+      {
+        ...createTemplateDto,
+      },
+    );
+
+    return temp.data;
+  }
+
+  async getTemplatesBySchemaId(schemaId: string) {
+    const res = await this.httpService.axiosRef.get(
+      `${process.env.SCHEMA_BASE_URL}/rendering-template?schemaId=${schemaId}`,
+    );
+
+    return res.data;
+  }
+
+  async getTemplateByTemplateId(templateId: string) {
+    const res = await this.httpService.axiosRef.get(
+      `${process.env.SCHEMA_BASE_URL}/rendering-template/${templateId}`,
+    );
+
+    return res.data;
+  }
 }
