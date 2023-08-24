@@ -678,4 +678,12 @@ export class RcwService {
 
     return res.data;
   }
+
+  async getCredentialsById(id: string) {
+    const res = await this.httpService.axiosRef.get(
+      `${process.env.CREDENTIAL_BASE_URL}/credentials/${id}`,
+    );
+
+    return res.data;
+  }
 }

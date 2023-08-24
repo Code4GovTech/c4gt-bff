@@ -41,6 +41,11 @@ export class RcwController {
     return this.rcwService.generateNewCredential(credential);
   }
 
+  @Get('/credential/:id')
+  async getCredentialsById(@Param('id') credentialId: string) {
+    return this.rcwService.getCredentialsById(credentialId);
+  }
+
   @Post('/templates')
   async createNewTemplate(@Body() createTemplateDto: CreateTemplateDTO) {
     return this.rcwService.createNewTemplate(createTemplateDto);
