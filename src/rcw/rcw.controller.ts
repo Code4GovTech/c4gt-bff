@@ -10,7 +10,7 @@ export class RcwController {
 
   @Get()
   async makeItRun() {
-    return this.rcwService.processCSV('data/sample.csv');
+    return await this.rcwService.processCSV('data/sample.csv');
   }
 
   @Get('/verify/:id')
@@ -33,31 +33,31 @@ export class RcwController {
 
   @Post('/schema')
   async createNewSchema(@Body() schema: any) {
-    return this.rcwService.createNewSchema(schema);
+    return await this.rcwService.createNewSchema(schema);
   }
 
   @Post('/credential')
   async createNewCredential(@Body() credential: CreateCredDTO) {
-    return this.rcwService.generateNewCredential(credential);
+    return await this.rcwService.generateNewCredential(credential);
   }
 
   @Get('/credential/:id')
   async getCredentialsById(@Param('id') credentialId: string) {
-    return this.rcwService.getCredentialsById(credentialId);
+    return await this.rcwService.getCredentialsById(credentialId);
   }
 
   @Post('/templates')
   async createNewTemplate(@Body() createTemplateDto: CreateTemplateDTO) {
-    return this.rcwService.createNewTemplate(createTemplateDto);
+    return await this.rcwService.createNewTemplate(createTemplateDto);
   }
 
   @Get('/templates/schema/:id')
   async getTemplates(@Param('id') id: string) {
-    return this.rcwService.getTemplatesBySchemaId(id);
+    return await this.rcwService.getTemplatesBySchemaId(id);
   }
 
   @Get('/templates/:id')
   async getTemplateByTemplateId(@Param('id') templateId: string) {
-    return this.rcwService.getTemplateByTemplateId(templateId);
+    return await this.rcwService.getTemplateByTemplateId(templateId);
   }
 }
