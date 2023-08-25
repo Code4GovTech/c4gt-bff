@@ -479,6 +479,69 @@ export class RcwService {
     }
   }
 
+  public async verifyCredentialOld(
+    credentialDID: string,
+    verifiedTemplaeFile: string,
+  ) {
+    // verify on the server
+    try {
+      const resp: AxiosResponse = await this.httpService.axiosRef.get(
+        `${process.env.CREDENTIAL_BASE_URL}/credentials/${credentialDID}/verify`,
+      );
+
+      const verificatonData = resp.data;
+
+      if (verificatonData.status === 'ISSUED') {
+        const credResp = await this.httpService.axiosRef.get(
+          `${process.env.CREDENTIAL_BASE_URL}/credentials/${credentialDID}`,
+        );
+        const data = credResp.data;
+
+        /*const schemaResp = await this.httpService.axiosRef.get(
+          `${process.env.CREDENTIAL_BASE_URL}/credentials/schema/${data.id}`,
+        );
+
+        const schemaId = schemaResp.data.credential_schema;
+
+        // fetch template via schemaId
+
+        const templates = await this.getTemplatesBySchemaId(schemaId);
+
+        let template;
+        for (let i = 0; i < templates.length; i++) {
+          const temp = templates[i];
+          if (temp.type.trim() === 'verified') {
+            template = temp.template;
+            break;
+          }
+        }
+
+        console.log('template: ', template);
+*/
+        console.log('data: ', data);
+        const qr = await this.renderAsQR(data.id);
+        const html = compileTemplate(
+          {
+            ...data.credentialSubject,
+            qr: qr,
+          },
+          verifiedTemplaeFile,
+        );
+        return html;
+        // return {
+        //   status: 'ISSUED',
+        //   credential: data,
+        //   html: `'${html}`,
+        // };
+      } else {
+        return 'Invalid credential';
+      }
+    } catch (err) {
+      console.log('err: ', err);
+      throw new InternalServerErrorException(err);
+    }
+  }
+
   private async uploadToMinio(fileName, file) {
     const metaData = {
       'Content-Type': 'application/pdf',
@@ -649,6 +712,13 @@ export class RcwService {
     }
     const minioURL = `http://${process.env.MINIO_ENDPOINT}:${process.env.MINIO_PORT}/${process.env.MINIO_BUCKETNAME}/${fileName}`;
 
+    // delete the pdf file to freee up storage
+    try {
+      await fs.promises.unlink(filePath);
+      console.log('File deleted successfully');
+    } catch (err) {
+      console.error('Error deleting file:', err);
+    }
     return { verificationURL, minioURL };
   }
 

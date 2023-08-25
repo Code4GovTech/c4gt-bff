@@ -96,7 +96,10 @@ export class InaugurationService {
   }
 
   async verifyCredential(did: string) {
-    return await this.rcwService.verifyCredential(did, 'inaug_verified.html');
+    return await this.rcwService.verifyCredentialOld(
+      did,
+      'inaug_verified.html',
+    );
   }
 
   async genCert(candidate: any) {
