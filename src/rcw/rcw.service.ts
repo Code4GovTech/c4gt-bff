@@ -721,8 +721,10 @@ export class RcwService {
 
     // delete the pdf file to freee up storage
     try {
-      await fs.promises.unlink(filePath);
-      await fs.promises.unlink(outputPath);
+      await Promise.all([
+        fs.promises.unlink(filePath),
+        fs.promises.unlink(outputPath)
+      ]);
       console.log('File deleted successfully');
     } catch (err) {
       console.error('Error deleting file:', err);
