@@ -1,4 +1,5 @@
 FROM node:16
+# FROM --platform=linux/amd64 node:18-slim
 
 RUN apt-get update \
   && apt-get install -y wget gnupg \
@@ -7,7 +8,8 @@ RUN apt-get update \
   && apt-get update \
   && apt-get install -y google-chrome-stable fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-kacst fonts-freefont-ttf libxss1 \
   --no-install-recommends \
-  && rm -rf /var/lib/apt/lists/*
+  && rm -rf /var/lib/apt/lists/* \
+  && apt-get install ghostscript=10.02.0
 
 WORKDIR /app
 COPY . ./
