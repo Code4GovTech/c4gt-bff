@@ -23,6 +23,7 @@ import {
   CreateCredSchemaDTO,
   CreateTemplateDTO,
 } from './dto/requst.dto';
+import { ExecService } from './pdf.service';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const QRCode = require('qrcode');
 
@@ -30,6 +31,7 @@ const QRCode = require('qrcode');
 // const limit = pLimit(5);
 
 // import { emailText } from 'src/mails.config';
+
 @Injectable()
 export class RcwService {
   private failedDIDs = [];
@@ -43,6 +45,7 @@ export class RcwService {
     private readonly httpService: HttpService,
     private readonly mailerService: MailerService,
     private readonly mailingService: MailingService,
+    private readonly executorService: ExecService,
   ) {
     this.failedCredentials = [];
     this.failedDIDs = [];
@@ -702,10 +705,14 @@ export class RcwService {
       throw new InternalServerErrorException('Error generating PDF');
     }
 
+    // CONVERT PDF BEFORE UPLOADING
+    let outputPath = `./pdfs/_${fileName}`
+    await this.executorService.pdfConvertorCommand(filePath, outputPath)
+
     // UPLOAD PDF to MINIO
 
     try {
-      await this.uploadToMinio(`${fileName}`, `${filePath}`);
+      await this.uploadToMinio(`${fileName}`, `${outputPath}`);
     } catch (err) {
       this.logger.error('Error uploading file to minio: ', err);
       throw new InternalServerErrorException('Error uploading file to minio');
