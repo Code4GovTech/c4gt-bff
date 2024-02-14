@@ -18,13 +18,13 @@ export async function createPDF(data, pdfPath) {
   // const templateHtml = fs.readFileSync('./templates/final.html', 'utf8');
   // console.log('templateHtml', templateHtml);
   // const template = handlebars.compile(templateHtml);
-  const html = compileTemplate(data, 'final.html');
+  const html = compileTemplate(data, 'MentorshipProgramParticipationCertTemplate.html');
 
   fs.writeFileSync(`./htmls/${pdfPath.split('/')[2]}.html`, html);
 
   const options = {
-    height: 900 / 0.75,
-    width: 600 / 0.75,
+    height: 848 / 0.75,
+    width: 570 / 0.75,
     scale: 1 / 0.75,
     landscape: true,
     displayHeaderFooter: false,
@@ -42,9 +42,12 @@ export async function createPDF(data, pdfPath) {
   });
 
   const page = await browser.newPage();
+  await page.addStyleTag({ content: 'body { padding-botton: 50px; }' }); // Adjusts the top padding by 50 pixels.
+
+
 
   await page.goto(
-    `file:///home/techsavvyash/sweatAndBlood/samagra/C4GT/c4gt-bff/htmls/${pdfPath.split('/')[2]
+    `file:/Users/kanavdwevedi/repositories/c4gt-bff/htmls/${pdfPath.split('/')[2]
     }.html`,
     { waitUntil: 'networkidle0' },
   );
@@ -62,6 +65,8 @@ export async function createPDFFromTemplate(data, template, pdfPath) {
   // const template = handlebars.compile(templateHtml);
   const compiledTemplate = handlebars.compile(template);
   const html = compiledTemplate(data);
+
+  console.log("Call: CreatePDF",data,pdfPath)
 
   fs.writeFileSync(`./htmls/${pdfPath.split('/')[2]}.html`, html);
   const absolutePath = resolve(`./htmls/${pdfPath.split('/')[2]}.html`);
@@ -83,6 +88,8 @@ export async function createPDFFromTemplate(data, template, pdfPath) {
       height: 768,
     },
   });
+
+  console.log(browser)
 
   const page = await browser.newPage();
   await page.goto(

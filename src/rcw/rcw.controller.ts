@@ -10,7 +10,7 @@ export class RcwController {
 
   @Get()
   async makeItRun() {
-    return await this.rcwService.processCSV('data/sample.csv');
+    return await this.rcwService.processCSV('data/SaturdayBatch.csv');
   }
 
   @Get('/verify/:id')

@@ -1,4 +1,5 @@
 import { HttpService } from '@nestjs/axios';
+import * as Handlebars from 'handlebars';
 import {
   Injectable,
   InternalServerErrorException,
@@ -62,16 +63,13 @@ export class RcwService {
       //   // wait it out
       // }, 100);
       console.log('Processing file: ', file);
-      const csvFilePath = './data/final/' + file;
-      const jsonArray = await csvToJson().fromFile(csvFilePath);
+      const jsonArray = await csvToJson().fromFile(csvPath);
       const idxIdMap = {};
       jsonArray.forEach((candidate: CandidateJSON, idx: number) => {
         idxIdMap[candidate.email] = idx;
       });
-
       let candidatesWithDIDs, candidatesWithCredentials;
       try {
-        // console.log('jsonArray: ', jsonArray);
         candidatesWithDIDs = await this.generateDIDs(
           jsonArray as CandidateJSON[],
           idxIdMap,
@@ -80,17 +78,11 @@ export class RcwService {
         Logger.error('Error in generating DIDs', err);
         throw new InternalServerErrorException(err);
       }
-
       try {
-        // console.log(candidatesWithDIDs);
-        // fs.writeFileSync(
-        //   `./output/dids-${Date.now()}.json`,
-        //   JSON.stringify(candidatesWithDIDs),
-        // );
         candidatesWithCredentials = await this.generateCredential(
           candidatesWithDIDs,
           idxIdMap,
-          process.env.ACK_CRED_SCHEMA_ID,
+          process.env.PARTICIPATION_CERT_SCHEMA_ID,
           [
             'VerifiableCredential',
             'Acknowledgement',
@@ -101,7 +93,7 @@ export class RcwService {
         );
       } catch (err) {
         console.log('err: ', err);
-        Logger.error('Error in generating credentials', err);
+        Logger.error('Error in generating credential', err);
         throw new InternalServerErrorException(err);
       }
 
@@ -110,21 +102,22 @@ export class RcwService {
         candidatesWithCredentials.length,
       );
       fs.writeFileSync(
-        `./output/${file}.json`,
+        `src/rcw/output/candidates.json`,
         JSON.stringify(candidatesWithCredentials),
       );
-      // await this.generatePDFs(candidatesWithCredentials);
+      await this.generatePDFs(candidatesWithCredentials);
     }
     const failedPDFs = this.failedPDFs;
     const newFiles = ['sample.csv'];
     for (const file of newFiles) {
       const pdfsToGenerate = JSON.parse(
-        fs.readFileSync(`./output/${file}.json`, 'utf-8'),
+        fs.readFileSync(`src/rcw/output/candidates.json`, 'utf-8'),
       );
 
       for (let i = 0; i < pdfsToGenerate.length; i++) {
         const candidate = pdfsToGenerate[i];
         try {
+          console.log("Process Loop, Generating PDF")
           await this.generatePDFs(candidate);
         } catch (err) {
           Logger.error('Error in generating PDF', err);
@@ -134,7 +127,7 @@ export class RcwService {
     }
 
     fs.writeFileSync(
-      `./output/failedPDFs.json`,
+      `src/rcw/output/failedPDFs.json`,
       JSON.stringify(this.failedPDFs),
     );
     return 'Done';
@@ -195,10 +188,44 @@ export class RcwService {
   async generateCredential(
     candidates: CandidateJSON[],
     idxIdMap: { [k: string]: number },
-    credSchemaId: string = process.env.ACK_SCHEMA_ID,
+    credSchemaId: string = process.env.COMPLETION_CERT_SCHEMA_ID,
     type: string[] = ['VerifiableCredential', 'Acknowledgement', 'C4GT23'],
     tags: string[] = ['C4GT23'],
   ) {
+
+    
+
+  //   candidates.map((candidate: CandidateJSON, idx: number) => {
+  //   console.log({
+  //     credential: {
+  //       '@context': [
+  //         'https://www.w3.org/2018/credentials/v1',
+  //         'https://www.w3.org/2018/credentials/examples/v1',
+  //       ],
+  //       id: 'C4GT',
+  //       type,
+  //       issuer: process.env.C4GT_DID, //'did:C4GT:8a88baed-3d5b-448d-8dbf-6c184e59c7b7',
+  //       issuanceDate: new Date().toISOString(),
+  //       expirationDate: new Date('2123-01-01T00:00:00Z').toISOString(),
+  //       credentialSubject: {
+  //         id: candidate.did,
+  //         name: candidate.name,
+  //         email: candidate.email,
+  //         product: candidate.product
+  //       },
+  //       options: {
+  //         created: '2020-04-02T18:48:36Z',
+  //         credentialStatus: {
+  //           type: 'RevocationList2020Status',
+  //         },
+  //       },
+  //     },
+  //     credentialSchemaId: credSchemaId,
+  //     tags: tags ?? [],
+  //   })
+  // })
+
+    
     const responses = await Promise.all(
       candidates.map((candidate: CandidateJSON, idx: number) => {
         // console.log('candidateDID: ', candidate.did);
@@ -219,6 +246,7 @@ export class RcwService {
                 id: candidate.did,
                 name: candidate.name,
                 email: candidate.email,
+                product: candidate.product
               },
               options: {
                 created: '2020-04-02T18:48:36Z',
@@ -228,7 +256,7 @@ export class RcwService {
               },
             },
             credentialSchemaId: credSchemaId,
-            tags,
+            tags: tags ?? [],
           },
         );
       }),
@@ -279,6 +307,7 @@ export class RcwService {
   async renderAsQR(cred) {
     try {
       const verificationURL = `${process.env.FRONTEND_BASE_URL}/rcw/verify/${cred.id}`;
+      console.log(verificationURL)
       const QRData = await QRCode.toDataURL(verificationURL);
       return QRData;
     } catch (err) {
@@ -357,27 +386,31 @@ export class RcwService {
     const failedEmails = [];
     const fileCandidateMapping = [];
 
+    
+
     for (let i = 0; i < candidates.length; i++) {
       const candidate = candidates[i];
-      const fileName = `${candidate.id}_${candidate.name}.pdf`;
-      const filePath = `./pdfs/${fileName}`;
+      console.log("Generating PDFs for", candidate.id,candidate.name, candidate.product)
+      const fileName = `Mentorship Program Participation_${candidate.product}_${candidate.name}_${candidate.id}.pdf`;
+      const filePath = `pdfs/${fileName}`;
       // GENERATE QR
       const qr = await this.renderAsQR(candidates[i].credential);
       console.time('pdfCreation');
       try {
-        await createPDF({ name: candidate.name, qr: qr }, filePath);
+        await createPDF({ name: candidate.name,product:candidate.product, qr: qr }, filePath);
         // const template = Handlebars.compile(
-        //   fs.readFileSync('./templates/final.html', 'utf8'),
+        //   fs.readFileSync('./templates/MentorshipProgramFinalCertTemplate.html', 'utf8'),
         // );
-        // const data = template({ name: candidate.name, qr: qr });
-        // await this.genPdfFromWKHTML(data, filePath);
+        // const data = template({ name: candidate.name,product:candidate.product, qr: qr });
+        // await createPDFFromTemplate(data,template, filePath);
       } catch (er) {
-        console.log('eror in pdf generation: ', er);
+        console.log('error in pdf generation: ', er);
         failedPDFCreations.push(candidate);
         continue;
       }
       console.timeEnd('pdfCreation');
       const minioURL = `http://${process.env.MINIO_ENDPOINT}:${process.env.MINIO_PORT}/${process.env.MINIO_BUCKETNAME}/${fileName}`;
+      console.log("MINIO URL", minioURL)
 
       console.time('uploadToMinio');
       try {
@@ -392,36 +425,37 @@ export class RcwService {
     }
 
     // sending emails
-    for (let i = 0; i < candidates.length; i++) {
-      const candidate = candidates[i];
-      const { minioURL, filePath, fileName } =
-        fileCandidateMapping[candidate.id];
-      console.time('sendEmail');
-      try {
-        console.log(minioURL);
-        await this.mailingService.sendEmail(
-          candidate.email,
-          'Thank you for applying to C4GT 2023!',
-          fs.readFileSync('./templates/email.html', 'utf8'),
-          {
-            // data: data,
-            path: `http://${process.env.MINIO_ENDPOINT}:${process.env.MINIO_PORT}/${process.env.MINIO_BUCKETNAME}/${fileName}`,
-            filename: `${fileName}`,
-          },
-        );
-      } catch (err) {
-        console.log('err: ', err);
-        Logger.error(`Error in sending email for ${candidate.name} ${err}`);
-        failedEmails.push(candidate);
-        // throw new InternalServerErrorException('Error sending email');
-      }
-      console.timeEnd('sendEmail');
+    return
+    // for (let i = 0; i < candidates.length; i++) {
+    //   const candidate = candidates[i];
+    //   const { minioURL, filePath, fileName } =
+    //     fileCandidateMapping[candidate.id];
+    //   console.time('sendEmail');
+    //   try {
+    //     console.log(minioURL);
+    //     await this.mailingService.sendEmail(
+    //       candidate.email,
+    //       'Thank you for applying to C4GT 2023!',
+    //       fs.readFileSync('./templates/email.html', 'utf8'),
+    //       {
+    //         // data: data,
+    //         path: `http://${process.env.MINIO_ENDPOINT}:${process.env.MINIO_PORT}/${process.env.MINIO_BUCKETNAME}/${fileName}`,
+    //         filename: `${fileName}`,
+    //       },
+    //     );
+    //   } catch (err) {
+    //     console.log('err: ', err);
+    //     Logger.error(`Error in sending email for ${candidate.name} ${err}`);
+    //     failedEmails.push(candidate);
+    //     // throw new InternalServerErrorException('Error sending email');
+    //   }
+    //   console.timeEnd('sendEmail');
     }
-  }
+  
 
   public async verifyCredential(
     credentialDID: string,
-    verifiedTemplaeFile: string,
+    verifiedTemplateFile: string,
   ) {
     // verify on the server
     try {
@@ -436,12 +470,15 @@ export class RcwService {
           `${process.env.CREDENTIAL_BASE_URL}/credentials/${credentialDID}`,
         );
         const data = credResp.data;
+        console.log("VERIFICATION DATA", data)
 
         const schemaResp = await this.httpService.axiosRef.get(
           `${process.env.CREDENTIAL_BASE_URL}/credentials/schema/${data.id}`,
         );
 
         const schemaId = schemaResp.data.credential_schema;
+
+        console.log("SchemaID ", schemaId)
 
         // fetch template via schemaId
 
@@ -465,7 +502,7 @@ export class RcwService {
             ...data.credentialSubject,
             qr: qr,
           },
-          template ?? verifiedTemplaeFile,
+          template ?? verifiedTemplateFile,
         );
         return html;
         // return {
@@ -722,6 +759,7 @@ export class RcwService {
     // delete the pdf file to freee up storage
     try {
       await fs.promises.unlink(filePath);
+      await fs.promises.unlink(outputPath);
       console.log('File deleted successfully');
     } catch (err) {
       console.error('Error deleting file:', err);
@@ -730,12 +768,15 @@ export class RcwService {
   }
 
   async createNewTemplate(createTemplateDto: CreateTemplateDTO) {
+    console.log(1)
     const temp = await this.httpService.axiosRef.post(
       `${process.env.SCHEMA_BASE_URL}/rendering-template`,
       {
         ...createTemplateDto,
       },
     );
+
+    console.log(temp)
 
     return temp.data;
   }
