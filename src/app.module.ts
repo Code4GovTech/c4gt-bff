@@ -5,7 +5,6 @@ import { RcwModule } from './rcw/rcw.module';
 import { ConfigModule } from '@nestjs/config';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { MailingModule } from './mailing/mailing.module';
-import { MinioModule } from './minio/minio.module';
 import { InaugurationService } from './inauguration/inauguration.service';
 import { InaugurationModule } from './inauguration/inauguration.module';
 import { HttpModule } from '@nestjs/axios';
@@ -37,7 +36,6 @@ import { HttpModule } from '@nestjs/axios';
       isGlobal: true,
     }),
     MailingModule,
-    MinioModule,
     InaugurationModule,
     HttpModule,
   ],

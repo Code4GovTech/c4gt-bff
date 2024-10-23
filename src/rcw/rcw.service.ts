@@ -25,7 +25,6 @@ import {
   CreateTemplateDTO,
 } from './dto/requst.dto';
 import { ExecService } from './pdf.service';
-import { ExecService } from './pdf.service';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const QRCode = require('qrcode');
 
@@ -48,7 +47,6 @@ export class RcwService {
     private readonly httpService: HttpService,
     private readonly mailerService: MailerService,
     private readonly mailingService: MailingService,
-    private readonly executorService: ExecService,
     private readonly executorService: ExecService,
   ) {
     this.failedCredentials = [];
@@ -728,10 +726,12 @@ export class RcwService {
       this.logger.warn('Template not found hence skipping PDF creation.');
       return { verificationURL };
     }
-    const fileName = `${credential.credentialSubject.username}_${credential.credentialSubject.badge}.pdf`;
+    const fileName = `${credential.credentialSubject.username}_${credential.credentialSubject.badgeName.slice(0,-6)}.pdf`;
+    // const fileName = `${credential.credentialSubject.username}_${credential.credentialSubject.product}_DMP2024.pdf`;
     const filePath = `./pdfs/${fileName}`;
     try {
       const qr = await this.renderAsQR(credential);
+      console.log("QR",qr)
       const pdfData = await createPDFFromTemplate(
         {
           ...credential.credentialSubject,
@@ -749,9 +749,6 @@ export class RcwService {
     let outputPath = `./pdfs/_${fileName}`
     await this.executorService.pdfConvertorCommand(filePath, outputPath)
 
-    // CONVERT PDF BEFORE UPLOADING
-    let outputPath = `./pdfs/_${fileName}`
-    await this.executorService.pdfConvertorCommand(filePath, outputPath)
 
     // UPLOAD PDF to MINIO
 

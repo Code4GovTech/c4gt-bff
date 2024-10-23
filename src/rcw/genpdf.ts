@@ -70,34 +70,37 @@ export async function createPDFFromTemplate(data, template, pdfPath) {
 
   fs.writeFileSync(`./htmls/${pdfPath.split('/')[2]}.html`, html);
   const absolutePath = resolve(`./htmls/${pdfPath.split('/')[2]}.html`);
+  console.log("Hello")
   const options = {
-    height: 900 / 0.75,
-    width: 600 / 0.75,
-    scale: 1 / 0.75,
+    height: 900,
+    width: 680,
+    // scale:
     landscape: true,
     displayHeaderFooter: false,
     printBackground: true,
     path: pdfPath,
+    pageRanges: '1',
   };
 
-  const browser = await puppeteer.launch({
-    args: ['--no-sandbox'],
-    headless: 'new',
-    defaultViewport: {
-      width: 1024,
-      height: 768,
-    },
-  });
+
+  const browser = await puppeteer.launch(
+    {
+        args: ['--no-sandbox'],
+        headless: true,
+        defaultViewport: {
+          width: 1024,
+          height: 600,
+        },
+      });
 
   console.log(browser)
 
   const page = await browser.newPage();
   await page.goto(
-    // `file:///home/techsavvyash/sweatAndBlood/samagra/C4GT/c4gt-bff/htmls/${pdfPath.split('/')[2]
-    // }.html`,
     `file://${absolutePath}`,
     { waitUntil: 'networkidle0' },
   );
+  await page.emulateMediaType('screen');
 
   await page.evaluate(() => {
     window.scrollBy(0, window.innerHeight);
