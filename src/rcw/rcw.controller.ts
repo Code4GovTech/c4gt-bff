@@ -2,7 +2,7 @@ import { Body, Controller, Get, Param, Post, Req, Res } from '@nestjs/common';
 import { RcwService } from './rcw.service';
 import { async } from 'rxjs';
 import { Request, Response } from 'express';
-import { CreateCredDTO, CreateTemplateDTO } from './dto/requst.dto';
+import { CreateCredDTO, CreateTemplateDTO } from './dto/credentialRequests.dto';
 
 @Controller('rcw')
 export class RcwController {

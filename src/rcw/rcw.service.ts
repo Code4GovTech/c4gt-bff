@@ -23,7 +23,7 @@ import {
   CreateCredDTO,
   CreateCredSchemaDTO,
   CreateTemplateDTO,
-} from './dto/requst.dto';
+} from './dto/credentialRequests.dto';
 import { ExecService } from './pdf.service';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const QRCode = require('qrcode');
