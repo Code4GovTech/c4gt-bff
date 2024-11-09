@@ -1,6 +1,5 @@
 import { Body, Controller, Get, Param, Post, Req, Res } from '@nestjs/common';
 import { RcwService } from './rcw.service';
-import { async } from 'rxjs';
 import { Request, Response } from 'express';
 import { CreateCredDTO, CreateTemplateDTO } from './dto/credentialRequests.dto';
 
@@ -22,11 +21,6 @@ export class RcwController {
     const resp = await this.rcwService.verifyCredential(id, 'verified.html');
     res.send(resp);
   }
-
-  // @Get('/generateDIDs')
-  // async generateDIDs() {
-  //   return this.rcwService.generateDIDs();
-  // }
 
   @Post('/schema')
   async createNewSchema(@Body() schema: any) {
