@@ -22,11 +22,6 @@ export class RcwController {
     res.send(resp);
   }
 
-  @Post('/schema')
-  async createNewSchema(@Body() schema: any) {
-    return await this.rcwService.createNewSchema(schema);
-  }
-
   @Post('/credential')
   async createNewCredential(@Body() credential: CreateCredDTO) {
     return await this.rcwService.generateNewCredential(credential);

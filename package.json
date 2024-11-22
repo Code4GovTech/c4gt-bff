@@ -27,6 +27,7 @@
     "@nestjs/config": "^3.0.0",
     "@nestjs/core": "^9.0.0",
     "@nestjs/platform-express": "^9.0.0",
+    "@prisma/client": "5.22.0",
     "@types/handlebars": "^4.1.0",
     "@types/minio": "^7.1.1",
     "@types/nodemailer": "^6.4.8",
@@ -34,7 +35,6 @@
     "base64topdf": "^1.1.8",
     "csvtojson": "^2.0.10",
     "fs-extra": "^11.1.1",
-    "googleapis": "^118.0.0",
     "handlebars": "^4.7.7",
     "jsonwebtoken": "^9.0.0",
     "mime-type": "^4.0.0",
@@ -43,13 +43,13 @@
     "nodemailer": "^6.9.3",
     "oci-sdk": "^2.62.3",
     "p-limit": "3.0.0",
+    "prisma": "^5.22.0",
     "puppeteer": "^20.7.3",
     "qrcode": "^1.5.3",
     "reflect-metadata": "^0.1.13",
     "rimraf": "^3.0.2",
     "rxjs": "^7.2.0",
-    "util": "^0.12.5",
-    "wkhtmltopdf": "^0.4.0"
+    "util": "^0.12.5"
   },
   "devDependencies": {
     "@nestjs/cli": "^9.0.0",
