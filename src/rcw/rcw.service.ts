@@ -691,35 +691,6 @@ export class RcwService {
     return { verificationURL, minioURL };
   }
 
-  async createNewTemplate(createTemplateDto: CreateTemplateDTO) {
-    const temp = await this.httpService.axiosRef.post(
-      `${process.env.SCHEMA_BASE_URL}/rendering-template`,
-      {
-        ...createTemplateDto,
-      },
-    );
-
-    console.log(temp);
-
-    return temp.data;
-  }
-
-  async getTemplatesBySchemaId(schemaId: string) {
-    const res = await this.httpService.axiosRef.get(
-      `${process.env.SCHEMA_BASE_URL}/rendering-template?schemaId=${schemaId}`,
-    );
-
-    return res.data;
-  }
-
-  async getTemplateByTemplateId(templateId: string) {
-    const res = await this.httpService.axiosRef.get(
-      `${process.env.SCHEMA_BASE_URL}/rendering-template/${templateId}`,
-    );
-
-    return res.data;
-  }
-
   async getCredentialsById(id: string) {
     const res = await this.httpService.axiosRef.get(
       `${process.env.CREDENTIAL_BASE_URL}/credentials/${id}`,

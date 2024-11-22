@@ -31,19 +31,4 @@ export class RcwController {
   async getCredentialsById(@Param('id') credentialId: string) {
     return await this.rcwService.getCredentialsById(credentialId);
   }
-
-  @Post('/templates')
-  async createNewTemplate(@Body() createTemplateDto: CreateTemplateDTO) {
-    return await this.rcwService.createNewTemplate(createTemplateDto);
-  }
-
-  @Get('/templates/schema/:id')
-  async getTemplates(@Param('id') id: string) {
-    return await this.rcwService.getTemplatesBySchemaId(id);
-  }
-
-  @Get('/templates/:id')
-  async getTemplateByTemplateId(@Param('id') templateId: string) {
-    return await this.rcwService.getTemplateByTemplateId(templateId);
-  }
 }
