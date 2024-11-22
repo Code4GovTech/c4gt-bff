@@ -27,7 +27,7 @@ model Template {
   type                String
   verificationTemplate Template? @relation("TemplateToVerification", fields: [verificationTemplateId], references: [id])
   verificationTemplateId String? // Foreign key for the self-relation
-  referencedBy        Template[] @relation("TemplateToVerification")
+  referencedBy        Template[]? @relation("TemplateToVerification")
 }
 
 

@@ -4,19 +4,16 @@ import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { AxiosResponse } from 'axios';
 import { Schema, PrismaClient } from '@prisma/client';
-
-interface RCWSchemaServiceConfig {
-  baseUrl: string;
-}
+import { RCWSchemaServiceConfig } from './schema.interface';
 
 @Injectable()
 export class SchemaService {
   private rcwSchemaServiceConfig;
+  private readonly logger = new Logger(SchemaService.name);
   constructor(
     private readonly configService: ConfigService,
     private readonly httpService: HttpService,
     private readonly prisma: PrismaClient,
-    private readonly logger: Logger,
   ) {
     this.rcwSchemaServiceConfig = this.configService.get<RCWSchemaServiceConfig>('schemaService');
   }

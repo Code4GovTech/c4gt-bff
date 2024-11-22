@@ -692,7 +692,6 @@ export class RcwService {
   }
 
   async createNewTemplate(createTemplateDto: CreateTemplateDTO) {
-    console.log(1);
     const temp = await this.httpService.axiosRef.post(
       `${process.env.SCHEMA_BASE_URL}/rendering-template`,
       {
