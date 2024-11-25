@@ -2,6 +2,18 @@ export default () => ({
   schemaService: {
     baseUrl: process.env.SCHEMA_BASE_URL,
   },
+  credentialService: {
+    baseUrl: process.env.CREDENTIAL_BASE_URL,
+    defaultCredentialContext: [
+      'https://www.w3.org/2018/credentials/v1',
+      'https://www.w3.org/2018/credentials/examples/v1',
+    ],
+    defaultSigningId: process.env.C4GT_DID,
+    defaultCertificateLifetime: process.env.DEFAULT_CERTIFICATE_LIFETIME,
+  },
+  certificates: {
+    baseUrl: process.env.VERIFICATION_BASE_URL,
+  },
   minio: {
     username: process.env.MINIO_USERNAME,
     password: process.env.MINIO_PASSWORD,

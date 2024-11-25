@@ -30,16 +30,16 @@ export class TemplateService {
     }
   }
 
-  private async getTemplateByTemplateId(templateId: string) {
+  async getTemplateByTemplateId(templateId: string) {
     const res = await this.httpService.axiosRef.get(
-      `${this.rcwSchemaServiceConfig.baseUrl}/rendering-template/${templateId}`,
+      `${this.rcwSchemaServiceConfig.baseUrl}/template/${templateId}`,
     );
     return res.data;
   }
 
   private async getTemplatesBySchemaId(schemaId: string) {
     const res = await this.httpService.axiosRef.get(
-      `${this.rcwSchemaServiceConfig.baseUrl}/rendering-template?schemaId=${schemaId}`,
+      `${this.rcwSchemaServiceConfig.baseUrl}/template?schemaId=${schemaId}`,
     );
     return res.data;
   }
@@ -55,7 +55,7 @@ export class TemplateService {
       this.logger.debug(`Payload for rendering template creation: ${JSON.stringify(payload)}`);
 
       const renderingTemplateCreationResponse = await this.httpService.axiosRef.post(
-        `${this.rcwSchemaServiceConfig.baseUrl}/rendering-template`,
+        `${this.rcwSchemaServiceConfig.baseUrl}/template`,
         payload,
       );
 

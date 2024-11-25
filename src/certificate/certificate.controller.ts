@@ -1,10 +1,21 @@
-import { Controller, Get, Post, Patch, Delete } from '@nestjs/common';
-import { PDFRendererService } from './pdf-renderer/pdf-renderer.service';
-import { MinioClient } from './minio-client/minio-client.service';
+import { Controller, Get, Post, Patch, Delete, Param, Query } from '@nestjs/common';
+import { CreateCertificateDTO } from './certificate.dto';
+import { CertificateService } from './certificate.service';
 
 @Controller('certificate')
 export class CertificateController {
-  constructor(private readonly pdfRenderer: PDFRendererService, private readonly minioClient: MinioClient) {
+  constructor(private readonly certificateService: CertificateService) {}
 
+  @Get(':id?')
+  getCertificates(
+    @Param('id') id?: string,
+    @Query('templateId') templateId?: string,
+    @Query('schemaId') schemaId?: string,
+  ) {}
+
+  @Post('preview')
+  async renderCertificatePreview(createCertificatePayload: CreateCertificateDTO) {
+    createCertificatePayload.saveToMinio = false;
+    return await this.renderCertificatePreview(createCertificatePayload);
   }
 }

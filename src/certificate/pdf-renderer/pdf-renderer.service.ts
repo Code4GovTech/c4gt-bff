@@ -41,7 +41,7 @@ export class PDFRendererService {
     });
   }
 
-  compileRenderingTemplate(data: object, templateHtml: string) {
+  compileRenderingTemplate(data: object, templateHtml: any) {
     const compiledTemplate = handlebars.compile(templateHtml);
     return compiledTemplate(data);
   }

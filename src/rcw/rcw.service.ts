@@ -4,7 +4,7 @@ import {
   InternalServerErrorException,
   Logger,
 } from '@nestjs/common';
-import * as csvToJson from 'csvtojson';
+// import * as csvToJson from 'csvtojson';
 import { CandidateJSON } from './rcw.interface';
 import { AxiosResponse } from 'axios';
 import { Client } from 'minio';
@@ -15,15 +15,8 @@ import {
   createPDF,
   createPDFFromTemplate,
 } from './genpdf';
-import { CreateCredDTO, CreateTemplateDTO } from './dto/credentialRequests.dto';
+import { CreateCredDTO } from './dto/credentialRequests.dto';
 import { ExecService } from './pdf.service';
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const QRCode = require('qrcode');
-
-// import pLimit from 'p-limit';
-// const limit = pLimit(5);
-
-// import { emailText } from 'src/mails.config';
 
 @Injectable()
 export class RcwService {
@@ -262,7 +255,7 @@ export class RcwService {
   async getCredentialPDFData(credential: any, templateId: string) {
     // fetch the template
     // const templateResponse: AxiosResponse = await this.httpService.axiosRef.get(
-    //   `${process.env.SCHEMA_BASE_URL}/rendering-template/${templateId}`,
+    //   `${process.env.SCHEMA_BASE_URL}/template/${templateId}`,
     // );
     // const template = templateResponse.data.template;
     // console.log('template: ', template);
@@ -284,17 +277,17 @@ export class RcwService {
     }
   }
 
-  async renderAsQR(cred) {
-    try {
-      const verificationURL = `${process.env.FRONTEND_BASE_URL}/rcw/verify/${cred.id}`;
-      console.log(verificationURL);
-      const QRData = await QRCode.toDataURL(verificationURL);
-      return QRData;
-    } catch (err) {
-      console.error(err);
-      return err;
-    }
-  }
+  // async renderAsQR(cred) {
+  //   try {
+  //     const verificationURL = `${process.env.FRONTEND_BASE_URL}/rcw/verify/${cred.id}`;
+  //     console.log(verificationURL);
+  //     const QRData = await QRCode.toDataURL(verificationURL);
+  //     return QRData;
+  //   } catch (err) {
+  //     console.error(err);
+  //     return err;
+  //   }
+  // }
   async generatePDFs2(candidates: CandidateJSON[]) {
     const failedPDFCreations = [];
     const failedUploads = [];
@@ -461,69 +454,6 @@ export class RcwService {
             qr: qr,
           },
           template ?? verifiedTemplateFile,
-        );
-        return html;
-        // return {
-        //   status: 'ISSUED',
-        //   credential: data,
-        //   html: `'${html}`,
-        // };
-      } else {
-        return 'Invalid credential';
-      }
-    } catch (err) {
-      console.log('err: ', err);
-      throw new InternalServerErrorException(err);
-    }
-  }
-
-  public async verifyCredentialOld(
-    credentialDID: string,
-    verifiedTemplaeFile: string,
-  ) {
-    // verify on the server
-    try {
-      const resp: AxiosResponse = await this.httpService.axiosRef.get(
-        `${process.env.CREDENTIAL_BASE_URL}/credentials/${credentialDID}/verify`,
-      );
-
-      const verificatonData = resp.data;
-
-      if (verificatonData.status === 'ISSUED') {
-        const credResp = await this.httpService.axiosRef.get(
-          `${process.env.CREDENTIAL_BASE_URL}/credentials/${credentialDID}`,
-        );
-        const data = credResp.data;
-
-        /*const schemaResp = await this.httpService.axiosRef.get(
-          `${process.env.CREDENTIAL_BASE_URL}/credentials/schema/${data.id}`,
-        );
-
-        const schemaId = schemaResp.data.credential_schema;
-
-        // fetch template via schemaId
-
-        const templates = await this.getTemplatesBySchemaId(schemaId);
-
-        let template;
-        for (let i = 0; i < templates.length; i++) {
-          const temp = templates[i];
-          if (temp.type.trim() === 'verified') {
-            template = temp.template;
-            break;
-          }
-        }
-
-        console.log('template: ', template);
-*/
-        console.log('data: ', data);
-        const qr = await this.renderAsQR(data.id);
-        const html = compileTemplate(
-          {
-            ...data.credentialSubject,
-            qr: qr,
-          },
-          verifiedTemplaeFile,
         );
         return html;
         // return {
