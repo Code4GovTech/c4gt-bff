@@ -9,8 +9,9 @@ class CredentialMetaData{
 }
 
 export class CreateCertificateDTO{
-    templateId: string;
-    schemaId:string;
+    templateId?: string;
+    schemaId?:string;
+    handlebarTemplate?: string;
     candidateData: object;
     credentialMetadata: CredentialMetaData;
     saveToMinio?: boolean;

@@ -1,3 +1,5 @@
+import { identity } from "rxjs";
+
 export default () => ({
   schemaService: {
     baseUrl: process.env.SCHEMA_BASE_URL,
@@ -10,6 +12,9 @@ export default () => ({
     ],
     defaultSigningId: process.env.C4GT_DID,
     defaultCertificateLifetime: process.env.DEFAULT_CERTIFICATE_LIFETIME,
+  },
+  identityService: {
+    baseUrl: process.env.IDENTITY_BASE_URL,
   },
   certificates: {
     baseUrl: process.env.VERIFICATION_BASE_URL,
@@ -24,4 +29,7 @@ export default () => ({
     accessKey: process.env.MINIO_ACCESS_KEY,
     useSSL: process.env.MINIO_USE_SSL,
   },
+  auth: {
+    adminToken: process.env.ADMIN_TOKEN
+  }
 });

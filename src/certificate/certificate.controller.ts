@@ -16,6 +16,6 @@ export class CertificateController {
   @Post('preview')
   async renderCertificatePreview(createCertificatePayload: CreateCertificateDTO) {
     createCertificatePayload.saveToMinio = false;
-    return await this.renderCertificatePreview(createCertificatePayload);
+    return await this.certificateService.renderCertificate(createCertificatePayload);
   }
 }
