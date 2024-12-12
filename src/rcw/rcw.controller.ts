@@ -7,11 +7,6 @@ import { CreateCredDTO, CreateTemplateDTO } from './dto/credentialRequests.dto';
 export class RcwController {
   constructor(private readonly rcwService: RcwService) {}
 
-  @Get()
-  async makeItRun() {
-    return await this.rcwService.processCSV('data/SaturdayBatch.csv');
-  }
-
   @Get('/verify/:id')
   async verify(
     @Param('id') id: string,
@@ -20,15 +15,5 @@ export class RcwController {
   ) {
     const resp = await this.rcwService.verifyCredential(id, 'verified.html');
     res.send(resp);
-  }
-
-  @Post('/credential')
-  async createNewCredential(@Body() credential: CreateCredDTO) {
-    return await this.rcwService.generateNewCredential(credential);
-  }
-
-  @Get('/credential/:id')
-  async getCredentialsById(@Param('id') credentialId: string) {
-    return await this.rcwService.getCredentialsById(credentialId);
   }
 }

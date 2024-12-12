@@ -27,7 +27,7 @@ export default () => ({
     endpoint: process.env.MINIO_ENDPOINT,
     secretKey: process.env.MINIO_SECRET_KEY,
     accessKey: process.env.MINIO_ACCESS_KEY,
-    useSSL: process.env.MINIO_USE_SSL,
+    useSSL: process.env.MINIO_USE_SSL == 'true',
   },
   auth: {
     adminToken: process.env.ADMIN_TOKEN
