@@ -1,0 +1,33 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("C4GT_BFF_POSTGRES_BASE_URL")
+}
+
+model Schema {
+  id          String   @id @default(uuid())
+  name        String
+  description String
+  tags        String[] @default([]) // Array of strings
+}
+
+model Template {
+  id                  String    @id @default(uuid())
+  name                String
+  description         String
+  type                String
+  verificationTemplate Template? @relation("TemplateToVerification", fields: [verificationTemplateId], references: [id])
+  verificationTemplateId String? // Foreign key for the self-relation
+  referencedBy        Template[] @relation("TemplateToVerification")
+}
+
+
