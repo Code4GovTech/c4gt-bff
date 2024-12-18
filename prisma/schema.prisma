@@ -10,7 +10,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  url      = env("C4GT_BFF_POSTGRES_BASE_URL")
 }
 
 model Schema {
@@ -27,7 +27,7 @@ model Template {
   type                String
   verificationTemplate Template? @relation("TemplateToVerification", fields: [verificationTemplateId], references: [id])
   verificationTemplateId String? // Foreign key for the self-relation
-  referencedBy        Template[]? @relation("TemplateToVerification")
+  referencedBy        Template[] @relation("TemplateToVerification")
 }
 
 

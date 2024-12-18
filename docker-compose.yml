@@ -1,9 +1,60 @@
-version: '3'
+version: '3.8'
+
 services:
   c4gt-bff:
-    image: c4gt-bff 
-    build: https://github.com/techsavvyash/c4gt-bff.git
-    env_file: .env
-    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: c4gt-bff
     ports:
-      - '${SERVICE_PUBLIC_PORT}:3001'
+      - "3001:3001"
+    environment:
+      SCHEMA_BASE_URL: https://example.com/schema-service
+      CREDENTIAL_BASE_URL: https://example.com/credential-service
+      C4GT_DID: did:example:123456789abcdefghi
+      DEFAULT_CERTIFICATE_LIFETIME: 31536000
+      IDENTITY_BASE_URL: url
+      VERIFICATION_BASE_URL: https://example.com/verification-service
+      MINIO_USERNAME: your-minio-username
+      MINIO_PASSWORD: your-minio-password
+      MINIO_BUCKETNAME: your-bucket-name
+      MINIO_PORT: 9000
+      MINIO_ENDPOINT: minioadminpassword
+      MINIO_SECRET_KEY: your-minio-secret-key
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_USE_SSL: "true"
+      C4GT_BFF_POSTGRES_BASE_URL: postgres://postgres:postgres@postgres:5432/c4gt-bff
+    depends_on:
+      - postgres
+      - minio
+
+  postgres:
+    image: postgres:14
+    container_name: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: c4gt-bff
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadminpassword
+    ports:
+      - "9000:9000"  # MinIO web access
+      - "9001:9001"  # MinIO console access
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
+
+volumes:
+  postgres_data:
+    driver: local
+  minio_data:
+    driver: local
