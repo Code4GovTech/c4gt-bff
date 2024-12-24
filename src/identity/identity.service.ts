@@ -12,22 +12,44 @@ interface RCWIdentityConfig {
 @Injectable()
 export class IdentityService {
   private readonly config;
+  private didPayload;
 
   constructor(
     private readonly configService: ConfigService, 
     private readonly httpService: HttpService
   ) {
     this.config = this.configService.get<RCWIdentityConfig>('identityService');
+    this.didPayload = {
+        "content": [
+          {
+            "alsoKnownAs": [
+              "C4GT",
+              "https://www.codeforgovtech.in/"
+            ],
+            "services": [
+              {
+                "id": "C4GT",
+                "type": "IdentityHub",
+                "serviceEndpoint": {
+                  "@context": "schema.c4gt.acknowledgment",
+                  "@type": "UserServiceEndpoint",
+                  "instance": [
+                    "https://www.codeforgovtech.in"
+                  ]
+                }
+              }
+            ],
+            "method": "C4GT"
+          }
+        ]
+      }
   }
 
   async generateIdentity() {
     try {
-      const configPath = path.resolve(__dirname, '../config.json');
-      const requestBody = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-
       const generateUrl = `${this.config.baseUrl}/did/generate`;
 
-      const response = await this.httpService.axiosRef.post(generateUrl, requestBody, {
+      const response = await this.httpService.axiosRef.post(generateUrl, this.didPayload, {
         headers: { 'Content-Type': 'application/json' },
       });
       return response.data;

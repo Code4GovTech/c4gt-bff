@@ -1,7 +1,9 @@
-import { Controller, Post, Get, Body, Param } from '@nestjs/common';
+import { Controller, Post, Get, Param, UseInterceptors } from '@nestjs/common';
+import { AdminTokenInterceptor } from 'src/auth/auth.interceptor';
 import { IdentityService } from './identity.service';
 
 @Controller('identity')
+@UseInterceptors(AdminTokenInterceptor)
 export class IdentityController {
   constructor(private readonly identityService: IdentityService) {}
 
