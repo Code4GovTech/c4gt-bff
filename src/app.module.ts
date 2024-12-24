@@ -9,6 +9,7 @@ import { SchemaModule } from './schema/schema.module';
 import { TemplateModule } from './template/template.module';
 import { CertificateModule } from './certificate/certificate.module';
 import { PrismaModule } from 'src/prisma/prisma.module';
+import { IdentityModule } from './identity/identity.module';
 import configuration from './config/configuration';
 
 @Module({
@@ -23,6 +24,7 @@ import configuration from './config/configuration';
     TemplateModule,
     CertificateModule,
     PrismaModule,
+    IdentityModule,
   ],
   controllers: [AppController, SchemaController],
   providers: [AppService],

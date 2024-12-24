@@ -36,6 +36,7 @@ lerna-debug.log*
 !.vscode/launch.json
 !.vscode/extensions.json
 .env
+.env.archive
 secret.json
 pdfs
 data
