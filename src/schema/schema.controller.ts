@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Put, Param } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Put, Query } from '@nestjs/common';
 import { SchemaService } from './schema.service';
 import { CreateSchemaDTO } from './schema.dto';
 

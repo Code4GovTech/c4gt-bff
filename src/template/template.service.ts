@@ -8,7 +8,7 @@ import { template } from 'handlebars';
 
 @Injectable()
 export class TemplateService {
-  private rcwSchemaServiceConfig;
+  private rcwSchemaServiceConfig:RCWSchemaServiceConfig;
   private readonly logger = new Logger(TemplateService.name);
   constructor(
     private readonly prisma: PrismaClient,
@@ -48,6 +48,7 @@ export class TemplateService {
     try {
       const payload = {
         schemaId: createCredentialRenderingTemplatePayload.schemaId,
+        schemaVersion: this.rcwSchemaServiceConfig.defaultSchemaVersion,
         template: createCredentialRenderingTemplatePayload.template,
         type: createCredentialRenderingTemplatePayload.type,
       };
@@ -60,12 +61,12 @@ export class TemplateService {
       );
 
       this.logger.debug(
-        `Rendering template created successfully with ID: ${renderingTemplateCreationResponse.data.templateId}`,
+        `Rendering template created successfully with ID: ${JSON.stringify(renderingTemplateCreationResponse.data.template.templateId)}`,
       );
 
       const renderingTemplateRegistration = await this.prisma.template.create({
         data: {
-          id: renderingTemplateCreationResponse.data.templateId,
+          id: renderingTemplateCreationResponse.data.template.templateId,
           name: createCredentialRenderingTemplatePayload.name,
           description: createCredentialRenderingTemplatePayload.description,
           type: createCredentialRenderingTemplatePayload.type,

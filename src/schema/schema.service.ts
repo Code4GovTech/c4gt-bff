@@ -8,7 +8,7 @@ import { RCWSchemaServiceConfig } from './schema.interface';
 
 @Injectable()
 export class SchemaService {
-  private rcwSchemaServiceConfig;
+  private rcwSchemaServiceConfig: RCWSchemaServiceConfig;
   private readonly logger = new Logger(SchemaService.name);
   constructor(
     private readonly configService: ConfigService,
@@ -19,6 +19,7 @@ export class SchemaService {
   }
   async getCredentialSchema(id: string): Promise<Schema[] | Schema | AxiosResponse> {
     try {
+      this.logger.log("ID",id)
       if (!id) {
         this.logger.debug('Fetching all schemas from the database');
         const schemas = await this.prisma.schema.findMany();
@@ -64,10 +65,10 @@ export class SchemaService {
           'https://w3id.org/security/suites/ed25519-2020/v1',
         ],
         type: 'https://w3c-ccg.github.io/vc-json-schemas/',
-        version: '1.0',
+        version: this.rcwSchemaServiceConfig.defaultSchemaVersion,
         id: '',
         name: createSchemaPayload.name,
-        author: process.env.C4GT_DID, // Hardcoded to C4GT DID
+        author: 'did:C4GT:09a5be7c-31bc-4510-b29f-a972ee7d088f',
         authored: new Date().toISOString(),
         schema: {
           $id: createSchemaPayload.name,

@@ -11,6 +11,7 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("C4GT_BFF_POSTGRES_BASE_URL")
+  shadowDatabaseUrl = env("C4GT_BFF_POSTGRES_BASE_URL_SHADOW")
 }
 
 model Schema {

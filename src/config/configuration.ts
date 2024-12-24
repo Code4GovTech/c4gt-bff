@@ -3,6 +3,7 @@ import { identity } from "rxjs";
 export default () => ({
   schemaService: {
     baseUrl: process.env.SCHEMA_BASE_URL,
+    defaultSchemaVersion: '1.0.0',
   },
   credentialService: {
     baseUrl: process.env.CREDENTIAL_BASE_URL,

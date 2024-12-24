@@ -18,4 +18,5 @@ export class CertificateController {
     createCertificatePayload.saveToMinio = false;
     return await this.certificateService.renderCertificate(createCertificatePayload);
   }
+  
 }

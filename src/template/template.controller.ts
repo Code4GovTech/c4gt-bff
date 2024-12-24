@@ -5,6 +5,7 @@ import { TemplateService } from './template.service';
 @Controller('template')
 export class TemplateController {
   constructor(private readonly templateService: TemplateService) {}
+  
   @Get(':id?')
   async getCredentialRenderingTemplate(@Param('id') id?: string, @Query('schemaId') schemaId?: string) {
     return await this.templateService.getTemplates(id, schemaId);
